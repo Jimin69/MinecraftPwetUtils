@@ -1,0 +1,8 @@
+{
+  "mixinConfigs": [
+    "pwetutils.mixins.json"
+  ],
+  "entrypoints": [
+    "com.pwetutils.PwetUtils"
+  ]
+}
