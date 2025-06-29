@@ -22,6 +22,22 @@ public class GuiChatMixin {
 
     @Inject(method = "keyTyped", at = @At("HEAD"), cancellable = true)
     public void onKeyTyped(char typedChar, int keyCode, CallbackInfo ci) {
+        // Check if typed character is Korean (Hangul)
+        boolean isSystemKorean = (typedChar >= 0xAC00 && typedChar <= 0xD7A3) || // Complete Korean syllables
+                (typedChar >= 0x1100 && typedChar <= 0x11FF) || // Korean jamo
+                (typedChar >= 0x3130 && typedChar <= 0x318F);   // Compatibility jamo
+
+        if (isSystemKorean) {
+            TextOverlayListener.systemKoreanDetected = true;
+            if (TextOverlayListener.isKorean) {
+                // Block Korean system input when mod Korean is enabled
+                ci.cancel();
+                return;
+            }
+        } else if (Character.isLetter(typedChar)) {
+            TextOverlayListener.systemKoreanDetected = false;
+        }
+
         if (!TextOverlayListener.isKorean) return;
 
         if (GuiScreen.isCtrlKeyDown() || GuiScreen.isKeyComboCtrlA(keyCode) ||

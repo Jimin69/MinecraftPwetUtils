@@ -11,6 +11,7 @@ import org.lwjgl.input.Mouse;
 
 public class TextOverlayListener {
     public static boolean isKorean = false;
+    public static boolean systemKoreanDetected = false;
     private boolean wasCtrlPressed = false;
     private boolean languageClicked = false;
     private boolean wasMouseDown = false;
@@ -50,11 +51,17 @@ public class TextOverlayListener {
         wasMouseDown = mouseDown;
         languageClicked = languageHovering && mouseDown;
 
+        int textColor;
+        if (systemKoreanDetected) {
+            textColor = 0xFF5555;
+        } else {
+            textColor = languageClicked ? 0xFFFF00 : 0xFFAA00;
+        }
+
         Gui.drawRect(languageX - padding, baseY - padding,
                 languageX + languageWidth + padding, baseY + textHeight + padding,
                 languageHovering ? 0x40FFFFFF : 0x80000000);
-        mc.fontRendererObj.drawStringWithShadow(languageText, languageX, baseY,
-                languageClicked ? 0xFFFF00 : 0xFFAA00);
+        mc.fontRendererObj.drawStringWithShadow(languageText, languageX, baseY, textColor);
 
         String settingsText = "§l⚙";
         int settingsX = isKorean ? 26 : 45;
