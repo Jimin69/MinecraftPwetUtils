@@ -24,6 +24,7 @@ public class TextOverlayListener {
         boolean ctrlPressed = Keyboard.isKeyDown(Keyboard.KEY_LCONTROL);
         if (ctrlPressed && !wasCtrlPressed) {
             isKorean = !isKorean;
+            systemKoreanDetected = false;
         }
         wasCtrlPressed = ctrlPressed;
 
@@ -47,6 +48,7 @@ public class TextOverlayListener {
         boolean mouseDown = Mouse.isButtonDown(0);
         if (languageHovering && mouseDown && !wasMouseDown) {
             isKorean = !isKorean;
+            systemKoreanDetected = false;
         }
         wasMouseDown = mouseDown;
         languageClicked = languageHovering && mouseDown;

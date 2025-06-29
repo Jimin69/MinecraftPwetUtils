@@ -20,17 +20,20 @@ public class GuiChatMixin {
     private HangulAssembler.Hangul currentHangul = new HangulAssembler.Hangul();
     private boolean composing = false;
 
+    @Inject(method = "initGui", at = @At("TAIL"))
+    public void onInitGui(CallbackInfo ci) {
+        TextOverlayListener.systemKoreanDetected = false;
+    }
+
     @Inject(method = "keyTyped", at = @At("HEAD"), cancellable = true)
     public void onKeyTyped(char typedChar, int keyCode, CallbackInfo ci) {
-        // Check if typed character is Korean (Hangul)
-        boolean isSystemKorean = (typedChar >= 0xAC00 && typedChar <= 0xD7A3) || // Complete Korean syllables
-                (typedChar >= 0x1100 && typedChar <= 0x11FF) || // Korean jamo
-                (typedChar >= 0x3130 && typedChar <= 0x318F);   // Compatibility jamo
+        boolean isSystemKorean = (typedChar >= 0xAC00 && typedChar <= 0xD7A3) || // complete korean syllables
+                (typedChar >= 0x1100 && typedChar <= 0x11FF) || // korean jamo
+                (typedChar >= 0x3130 && typedChar <= 0x318F);   // compatibility jamo
 
         if (isSystemKorean) {
             TextOverlayListener.systemKoreanDetected = true;
             if (TextOverlayListener.isKorean) {
-                // Block Korean system input when mod Korean is enabled
                 ci.cancel();
                 return;
             }
@@ -54,7 +57,7 @@ public class GuiChatMixin {
             return;
         }
 
-        if (keyCode == 14) { // Backspace
+        if (keyCode == 14) { // backspace
             if (composing && inputField.getCursorPosition() > 0) {
                 String text = inputField.getText();
                 int cursor = inputField.getCursorPosition();
