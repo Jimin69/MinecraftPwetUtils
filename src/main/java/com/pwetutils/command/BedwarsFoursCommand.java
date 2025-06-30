@@ -1,5 +1,6 @@
 package com.pwetutils.command;
 
+import net.minecraft.util.ChatComponentText;
 import net.weavemc.loader.api.command.Command;
 import net.minecraft.client.Minecraft;
 

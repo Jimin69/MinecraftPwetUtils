@@ -5,6 +5,7 @@
     "KoreanInputMixin",
     "ChatLimitMixin",
     "ChatPacketMixin",
-    "GuiTextFieldMixin"
+    "GuiTextFieldMixin",
+    "IncomingChatMixin"
   ]
 }
