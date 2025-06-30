@@ -44,7 +44,7 @@ public class GuiTextFieldMixin {
             } else if (currentStr.endsWith("o/") || currentStr.endsWith("h/")) {
                 String emote = currentStr.substring(currentStr.length() - 2);
                 int startIdx = i - 1;
-                boolean validStart = (startIdx < 0) || !Character.isLetterOrDigit(text.charAt(startIdx - 1));
+                boolean validStart = (startIdx <= 0) || !Character.isLetterOrDigit(text.charAt(startIdx - 1));
                 boolean validEnd = (i + 1 >= text.length()) || !Character.isLetterOrDigit(text.charAt(i + 1));
 
                 if (validStart && validEnd) {
