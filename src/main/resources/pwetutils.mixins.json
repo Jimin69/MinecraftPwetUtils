@@ -6,6 +6,8 @@
     "ChatLimitMixin",
     "ChatPacketMixin",
     "GuiTextFieldMixin",
-    "IncomingChatMixin"
+    "BwModeDetectorMixin",
+    "BwIncomingDetectorMixin",
+    "UsernameMentionMixin"
   ]
 }

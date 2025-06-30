@@ -9,7 +9,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(NetHandlerPlayClient.class)
-public class IncomingChatMixin {
+public class BwModeDetectorMixin {
     @Inject(method = "handleChat", at = @At("HEAD"))
     private void onHandleChat(S02PacketChat packet, CallbackInfo ci) {
         if (packet.getChatComponent() != null) {
