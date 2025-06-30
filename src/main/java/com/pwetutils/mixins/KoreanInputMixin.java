@@ -12,7 +12,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(GuiChat.class)
-public class GuiChatMixin {
+public class KoreanInputMixin {
     @Shadow
     protected GuiTextField inputField;
 

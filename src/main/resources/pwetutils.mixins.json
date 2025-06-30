@@ -2,6 +2,8 @@
   "compatibilityLevel": "JAVA_8",
   "package": "com.pwetutils.mixins",
   "mixins": [
-    "GuiChatMixin"
+    "KoreanInputMixin",
+    "ChatLimitMixin",
+    "ChatPacketMixin"
   ]
 }
