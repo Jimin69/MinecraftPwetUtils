@@ -16,7 +16,6 @@ public class EmoteHandler {
         EMOTES.put(":shrug:", "¯\\_(ツ)_/¯");
         EMOTES.put(":tableflip:", "(╯°□°）╯︵ ┻━┻");
         EMOTES.put("o/", "( ﾟ◡ﾟ)/");
-        EMOTES.put(":123:", "123");
         EMOTES.put(":totem:", "☉_☉");
         EMOTES.put(":typing:", "✎...");
         EMOTES.put(":maths:", "√(π+x)=L");
