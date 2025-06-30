@@ -4,6 +4,7 @@
   "mixins": [
     "KoreanInputMixin",
     "ChatLimitMixin",
-    "ChatPacketMixin"
+    "ChatPacketMixin",
+    "GuiTextFieldMixin"
   ]
 }
