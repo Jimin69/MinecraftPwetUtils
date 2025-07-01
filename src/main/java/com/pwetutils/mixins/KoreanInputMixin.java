@@ -146,8 +146,7 @@ public class KoreanInputMixin {
             }
             return HangulAssembler.getJongIndex(key) > 0;
         } else if (currentHangul.cho != -1 && currentHangul.jung != -1 && currentHangul.jong != -1) {
-            // have complete syllable: check if this is a vowel (for jong stealing) or combinable jong
-            if (HangulAssembler.getJungIndex(key) != -1) return true;
+            // have complete syllable: check if this is combinable jong only
             int jongIdx = HangulAssembler.getJongIndex(key);
             if (jongIdx > 0) {
                 return HangulAssembler.combineJong(currentHangul.jong, jongIdx) != -1;
@@ -237,13 +236,20 @@ public class KoreanInputMixin {
             if (jungIdx != -1) {
                 // vowel typed after complete syllable: steal the jong
                 int stolenCho = HangulAssembler.jongToCho(currentHangul.jong);
+
                 if (stolenCho != -1) {
-                    // remove jong from current syllable
+                    // simple jong that can be converted to cho
+                    String text = inputField.getText();
+                    int cursor = inputField.getCursorPosition();
+
+                    text = text.substring(0, cursor - 1) + text.substring(cursor);
+                    inputField.setText(text);
+                    inputField.setCursorPosition(cursor - 1);
+
                     currentHangul.jong = -1;
                     char korean = currentHangul.toChar();
                     inputField.writeText(String.valueOf(korean));
 
-                    // start new syllable with stolen consonant
                     currentHangul.clear();
                     currentHangul.cho = stolenCho;
                     currentHangul.jung = jungIdx;
@@ -251,6 +257,35 @@ public class KoreanInputMixin {
                     inputField.writeText(String.valueOf(korean));
                     composing = true;
                     return true;
+                } else {
+                    // complex jong - need to decompose
+                    int simplifiedJong = HangulAssembler.decomposeComplexJong(currentHangul.jong);
+                    if (simplifiedJong != -1) {
+                        // decompose complex jong and steal the second part
+                        // ㄶ -> ㄴ (keep) + ㅎ (steal)
+                        // ㄺ -> ㄹ (keep) + ㄱ (steal)
+                        int secondPart = getSecondPartOfComplexJong(currentHangul.jong);
+                        if (secondPart != -1) {
+                            String text = inputField.getText();
+                            int cursor = inputField.getCursorPosition();
+
+                            text = text.substring(0, cursor - 1) + text.substring(cursor);
+                            inputField.setText(text);
+                            inputField.setCursorPosition(cursor - 1);
+
+                            currentHangul.jong = simplifiedJong;
+                            char korean = currentHangul.toChar();
+                            inputField.writeText(String.valueOf(korean));
+
+                            currentHangul.clear();
+                            currentHangul.cho = secondPart;
+                            currentHangul.jung = jungIdx;
+                            korean = currentHangul.toChar();
+                            inputField.writeText(String.valueOf(korean));
+                            composing = true;
+                            return true;
+                        }
+                    }
                 }
             }
             // start new syllable
@@ -260,5 +295,22 @@ public class KoreanInputMixin {
         }
 
         return false;
+    }
+
+    private int getSecondPartOfComplexJong(int jongIdx) {
+        switch(jongIdx) {
+            case 3: return 9;   // ㄳ -> ㅅ becomes ㅅ cho
+            case 5: return 12;  // ㄵ -> ㅈ becomes ㅈ cho
+            case 6: return 18;  // ㄶ -> ㅎ becomes ㅎ cho
+            case 9: return 0;   // ㄺ -> ㄱ becomes ㄱ cho
+            case 10: return 6;  // ㄻ -> ㅁ becomes ㅁ cho
+            case 11: return 7;  // ㄼ -> ㅂ becomes ㅂ cho
+            case 12: return 9;  // ㄽ -> ㅅ becomes ㅅ cho
+            case 13: return 16; // ㄾ -> ㅌ becomes ㅌ cho
+            case 14: return 17; // ㄿ -> ㅍ becomes ㅍ cho
+            case 15: return 18; // ㅀ -> ㅎ becomes ㅎ cho
+            case 18: return 9;  // ㅄ -> ㅅ becomes ㅅ cho
+        }
+        return -1;
     }
 }
