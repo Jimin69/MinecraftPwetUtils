@@ -15,9 +15,12 @@ public class BwIncomingDetectorMixin {
     private void onHandleChat(S02PacketChat packet, CallbackInfo ci) {
         if (packet.getChatComponent() != null) {
             String text = packet.getChatComponent().getUnformattedText();
+            String playerName = Minecraft.getMinecraft().thePlayer.getName();
 
             if (text.startsWith("§9Party §8> ") || (!text.contains("[SHOUT]") && isTeamChat(text))) {
+                boolean isOwnMessage = text.contains(playerName + "§f: ") || text.contains(playerName + ": ");
                 int colonIndex = text.indexOf(": ");
+
                 if (colonIndex != -1) {
                     String message = text.substring(colonIndex + 2);
                     String messageLower = message.toLowerCase();
@@ -26,18 +29,29 @@ public class BwIncomingDetectorMixin {
 
                     for (int i = 0; i < words.length; i++) {
                         String word = words[i];
+                        String detectedWord = null;
+
                         if (word.equals("inc") ||
                                 (word.startsWith("inc") && word.substring(3).matches("\\\\+")) ||
                                 (word.startsWith("inc") && word.substring(3).matches("!+")) ||
                                 (word.startsWith("inc") && word.substring(3).matches("1+"))) {
+                            detectedWord = originalWords[i];
+                        } else if (word.equals("fb") ||
+                                (word.startsWith("fb") && word.substring(2).matches("\\\\+")) ||
+                                (word.startsWith("fb") && word.substring(2).matches("!+")) ||
+                                (word.startsWith("fb") && word.substring(2).matches("1+"))) {
+                            detectedWord = originalWords[i];
+                        }
 
-                            Minecraft.getMinecraft().addScheduledTask(() ->
-                                    Minecraft.getMinecraft().thePlayer.playSound("random.successful_hit", 1.0F, 0.0F)
-                            );
+                        if (detectedWord != null) {
+                            if (!isOwnMessage) {
+                                Minecraft.getMinecraft().addScheduledTask(() ->
+                                        Minecraft.getMinecraft().thePlayer.playSound("random.successful_hit", 1.0F, 0.0F)
+                                );
+                            }
 
-                            String incWord = originalWords[i];
                             String formatted = packet.getChatComponent().getFormattedText();
-                            String highlighted = formatted.replace(incWord, "§b§n" + incWord + "§r");
+                            String highlighted = formatted.replace(detectedWord, "§b§n" + detectedWord + "§r");
                             packet.chatComponent = new ChatComponentText(highlighted);
                             break;
                         }
