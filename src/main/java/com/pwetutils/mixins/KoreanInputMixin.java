@@ -1,7 +1,7 @@
 package com.pwetutils.mixins;
 
 import com.pwetutils.korean.HangulAssembler;
-import com.pwetutils.listener.TextOverlayListener;
+import com.pwetutils.listener.ChatOverlayListener;
 import net.minecraft.client.gui.GuiChat;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.GuiTextField;
@@ -22,7 +22,7 @@ public class KoreanInputMixin {
 
     @Inject(method = "initGui", at = @At("TAIL"))
     public void onInitGui(CallbackInfo ci) {
-        TextOverlayListener.systemKoreanDetected = false;
+        ChatOverlayListener.systemKoreanDetected = false;
     }
 
     @Inject(method = "keyTyped", at = @At("HEAD"), cancellable = true)
@@ -32,16 +32,16 @@ public class KoreanInputMixin {
                 (typedChar >= 0x3130 && typedChar <= 0x318F);   // compatibility jamo
 
         if (isSystemKorean) {
-            TextOverlayListener.systemKoreanDetected = true;
-            if (TextOverlayListener.isKorean) {
+            ChatOverlayListener.systemKoreanDetected = true;
+            if (ChatOverlayListener.isKorean) {
                 ci.cancel();
                 return;
             }
         } else if (Character.isLetter(typedChar)) {
-            TextOverlayListener.systemKoreanDetected = false;
+            ChatOverlayListener.systemKoreanDetected = false;
         }
 
-        if (!TextOverlayListener.isKorean) return;
+        if (!ChatOverlayListener.isKorean) return;
 
         if (GuiScreen.isCtrlKeyDown() || GuiScreen.isKeyComboCtrlA(keyCode) ||
                 GuiScreen.isKeyComboCtrlC(keyCode) || GuiScreen.isKeyComboCtrlV(keyCode) ||

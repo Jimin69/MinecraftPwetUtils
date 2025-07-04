@@ -8,6 +8,9 @@
     "GuiTextFieldMixin",
     "BwModeDetectorMixin",
     "BwIncomingDetectorMixin",
-    "UsernameMentionMixin"
+    "UsernameMentionMixin",
+    "ResourceTimerMixin",
+    "AdditionalExpMixin",
+    "ShoutDetectorMixin"
   ]
 }

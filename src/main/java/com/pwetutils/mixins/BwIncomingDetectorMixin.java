@@ -13,7 +13,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public class BwIncomingDetectorMixin {
     @Inject(method = "handleChat", at = @At("HEAD"))
     private void onHandleChat(S02PacketChat packet, CallbackInfo ci) {
-        if (packet.getChatComponent() != null) {
+        if (packet.getChatComponent() != null && Minecraft.getMinecraft().thePlayer != null) {
             String text = packet.getChatComponent().getUnformattedText();
             String playerName = Minecraft.getMinecraft().thePlayer.getName();
 
@@ -35,6 +35,11 @@ public class BwIncomingDetectorMixin {
                                 (word.startsWith("inc") && word.substring(3).matches("\\\\+")) ||
                                 (word.startsWith("inc") && word.substring(3).matches("!+")) ||
                                 (word.startsWith("inc") && word.substring(3).matches("1+"))) {
+                            detectedWord = originalWords[i];
+                        } else if (word.equals("uinc") ||
+                                (word.startsWith("uinc") && word.substring(4).matches("\\\\+")) ||
+                                (word.startsWith("uinc") && word.substring(4).matches("!+")) ||
+                                (word.startsWith("uinc") && word.substring(4).matches("1+"))) {
                             detectedWord = originalWords[i];
                         } else if (word.equals("fb") ||
                                 (word.startsWith("fb") && word.substring(2).matches("\\\\+")) ||

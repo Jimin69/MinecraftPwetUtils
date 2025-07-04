@@ -6,15 +6,47 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiChat;
 import net.minecraft.client.gui.ScaledResolution;
+import net.minecraft.scoreboard.*;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 
-public class TextOverlayListener {
+import java.util.Collection;
+
+public class ChatOverlayListener {
     public static boolean isKorean = false;
     public static boolean systemKoreanDetected = false;
     private boolean wasCtrlPressed = false;
     private boolean languageClicked = false;
     private boolean wasMouseDown = false;
+
+    private static boolean gameStarted = false;
+    private static int lastShoutScoreboardTime = -1;
+    private static boolean shoutJustHappened = false;
+    private static final int SHOUT_COOLDOWN = 60;
+
+    public static void startGame() {
+        gameStarted = true;
+        lastShoutScoreboardTime = -1;
+        shoutJustHappened = false;
+    }
+
+    public static void onPlayerShouted() {
+        if (gameStarted) {
+            shoutJustHappened = true;
+        }
+    }
+
+    private int parseTime(String time) {
+        String[] parts = time.split(":");
+        if (parts.length == 2) {
+            try {
+                return Integer.parseInt(parts[0]) * 60 + Integer.parseInt(parts[1]);
+            } catch (NumberFormatException e) {
+                return 0;
+            }
+        }
+        return 0;
+    }
 
     @SubscribeEvent
     public void onRender(RenderGameOverlayEvent.Post event) {
@@ -78,5 +110,60 @@ public class TextOverlayListener {
         int textWidth = mc.fontRendererObj.getStringWidth(settingsText);
         int centeredX = settingsX + (settingsWidth - textWidth) / 2 + 1;
         mc.fontRendererObj.drawStringWithShadow(settingsText, centeredX, baseY, 0xAAAAAA);
+
+        // Shout timer display
+        int currentScoreboardTime = -1;
+        boolean timerFound = false;
+
+        if (gameStarted && mc.theWorld != null) {
+            Scoreboard scoreboard = mc.theWorld.getScoreboard();
+            ScoreObjective sidebar = scoreboard.getObjectiveInDisplaySlot(1);
+
+            if (sidebar != null) {
+                Collection<Score> scores = scoreboard.getSortedScores(sidebar);
+                for (Score score : scores) {
+                    if (score.getScorePoints() == 12) { // Event timer score
+                        ScorePlayerTeam team = scoreboard.getPlayersTeam(score.getPlayerName());
+                        if (team != null) {
+                            String suffix = team.getColorSuffix();
+                            if (suffix.matches(".*\\d+:\\d+.*")) {
+                                String timeStr = suffix.replaceAll("[^0-9:]", "");
+                                currentScoreboardTime = parseTime(timeStr);
+                                timerFound = true;
+                            }
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (!timerFound) {
+            lastShoutScoreboardTime = -1;
+        }
+
+        if (shoutJustHappened && timerFound) {
+            lastShoutScoreboardTime = currentScoreboardTime;
+            shoutJustHappened = false;
+        }
+
+        // Only show shout timer if there's an active cooldown
+        if (lastShoutScoreboardTime != -1 && timerFound) {
+            int timeElapsed = lastShoutScoreboardTime - currentScoreboardTime;
+            int remainingSeconds = SHOUT_COOLDOWN - timeElapsed;
+
+            if (remainingSeconds > 0) {
+                String shoutText = "§6[SHOUT] §7in §c" + remainingSeconds + "§7s";
+                int shoutX = isKorean ? 43 : 62;
+                int shoutWidth = mc.fontRendererObj.getStringWidth(shoutText);
+
+                Gui.drawRect(shoutX - padding, baseY - padding,
+                        shoutX + shoutWidth + padding, baseY + textHeight + padding,
+                        0x80000000);
+                mc.fontRendererObj.drawStringWithShadow(shoutText, shoutX, baseY, 0xFFFFFF);
+            } else {
+                lastShoutScoreboardTime = -1;
+            }
+        }
     }
 }
