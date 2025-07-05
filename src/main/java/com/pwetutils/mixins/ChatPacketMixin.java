@@ -26,6 +26,8 @@ public class ChatPacketMixin {
 
     @Inject(method = "<init>(Ljava/lang/String;)V", at = @At("RETURN"))
     private void processEmotes(String message, CallbackInfo ci) {
-        this.message = EmoteHandler.processEmotes(this.message);
+        if (EmoteHandler.areEmotesEnabled()) {
+            this.message = EmoteHandler.processEmotes(this.message);
+        }
     }
 }

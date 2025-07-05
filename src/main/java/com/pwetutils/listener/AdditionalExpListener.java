@@ -45,7 +45,7 @@ public class AdditionalExpListener {
     }
 
     @SubscribeEvent
-    public void onRender(RenderGameOverlayEvent.Post event) {
+    public void onRender(RenderGameOverlayEvent.Pre event) {
         Minecraft mc = Minecraft.getMinecraft();
         boolean chatOpen = mc.currentScreen instanceof GuiChat;
 

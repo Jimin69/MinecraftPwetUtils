@@ -23,7 +23,7 @@ public class ResourceOverlayListener {
     }
 
     @SubscribeEvent
-    public void onRender(RenderGameOverlayEvent.Post event) {
+    public void onRender(RenderGameOverlayEvent.Pre event) {
         Minecraft mc = Minecraft.getMinecraft();
 
         String diamondTier = "§8III";
