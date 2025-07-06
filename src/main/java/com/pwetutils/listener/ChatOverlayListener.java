@@ -53,7 +53,11 @@ public class ChatOverlayListener {
     @SubscribeEvent
     public void onRender(RenderGameOverlayEvent.Post event) {
         Minecraft mc = Minecraft.getMinecraft();
-        if (!(mc.currentScreen instanceof GuiChat)) return;
+
+        if (!(mc.currentScreen instanceof GuiChat)) {
+            settingsOpen = false;
+            return;
+        }
 
         if (ModuleSettings.isLanguageInputEnabled()) {
             boolean ctrlPressed = Keyboard.isKeyDown(Keyboard.KEY_LCONTROL);
