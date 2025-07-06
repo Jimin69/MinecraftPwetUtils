@@ -44,12 +44,12 @@ public class SettingsOverlayListener {
         String module6 = "increaseChatLength";
         String module7 = "languageInputSwitch";
 
-        String icon1 = "§7§l✦";
-        String icon2 = "§7§l!";
-        String icon3 = "§7✫";
+        String icon1 = "§2§l✦";
+        String icon2 = "§b§l!";
+        String icon3 = "§e✫";
         String icon4 = "§c§l❤";
         String icon5 = "§b@";
-        String icon6 = "§7#";
+        String icon6 = "§f#";
         String icon7 = "§6A";
 
         String status1 = ModuleSettings.isResourceTimerEnabled() ? "TRUE" : "FALSE";
