@@ -1,5 +1,6 @@
 package com.pwetutils.mixins;
 
+import com.pwetutils.settings.ModuleSettings;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.network.NetHandlerPlayClient;
 import net.minecraft.network.play.server.S02PacketChat;
@@ -13,6 +14,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public class BwIncomingDetectorMixin {
     @Inject(method = "handleChat", at = @At("HEAD"))
     private void onHandleChat(S02PacketChat packet, CallbackInfo ci) {
+        if (!ModuleSettings.isChatWarningsEnabled()) return;
+
         if (packet.getChatComponent() != null && Minecraft.getMinecraft().thePlayer != null) {
             String text = packet.getChatComponent().getUnformattedText();
             String playerName = Minecraft.getMinecraft().thePlayer.getName();

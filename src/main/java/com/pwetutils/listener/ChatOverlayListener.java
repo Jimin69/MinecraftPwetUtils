@@ -1,5 +1,6 @@
 package com.pwetutils.listener;
 
+import com.pwetutils.settings.ModuleSettings;
 import net.weavemc.loader.api.event.RenderGameOverlayEvent;
 import net.weavemc.loader.api.event.SubscribeEvent;
 import net.minecraft.client.Minecraft;
@@ -15,6 +16,7 @@ import java.util.Collection;
 public class ChatOverlayListener {
     public static boolean isKorean = false;
     public static boolean systemKoreanDetected = false;
+    public static boolean settingsOpen = false;
     private boolean wasCtrlPressed = false;
     private boolean languageClicked = false;
     private boolean wasMouseDown = false;
@@ -53,65 +55,74 @@ public class ChatOverlayListener {
         Minecraft mc = Minecraft.getMinecraft();
         if (!(mc.currentScreen instanceof GuiChat)) return;
 
-        boolean ctrlPressed = Keyboard.isKeyDown(Keyboard.KEY_LCONTROL);
-        if (ctrlPressed && !wasCtrlPressed) {
-            isKorean = !isKorean;
-            systemKoreanDetected = false;
+        if (ModuleSettings.isLanguageInputEnabled()) {
+            boolean ctrlPressed = Keyboard.isKeyDown(Keyboard.KEY_LCONTROL);
+            if (ctrlPressed && !wasCtrlPressed) {
+                isKorean = !isKorean;
+                systemKoreanDetected = false;
+            }
+            wasCtrlPressed = ctrlPressed;
         }
-        wasCtrlPressed = ctrlPressed;
 
         int padding = 2;
         int baseY = new ScaledResolution(mc).getScaledHeight() - 27;
-
-        String languageText = isKorean ? "한글" : "English";
-        int languageX = 4;
-        int languageWidth = mc.fontRendererObj.getStringWidth(languageText);
         int textHeight = mc.fontRendererObj.FONT_HEIGHT;
 
         ScaledResolution sr = new ScaledResolution(mc);
         int mouseX = Mouse.getX() * sr.getScaledWidth() / mc.displayWidth;
         int mouseY = sr.getScaledHeight() - Mouse.getY() * sr.getScaledHeight() / mc.displayHeight - 1;
-
-        boolean languageHovering = mouseX >= languageX - padding &&
-                mouseX <= languageX + languageWidth + padding &&
-                mouseY >= baseY - padding &&
-                mouseY <= baseY + textHeight + padding;
-
         boolean mouseDown = Mouse.isButtonDown(0);
-        if (languageHovering && mouseDown && !wasMouseDown) {
-            isKorean = !isKorean;
-            systemKoreanDetected = false;
-        }
-        wasMouseDown = mouseDown;
-        languageClicked = languageHovering && mouseDown;
 
-        int textColor;
-        if (systemKoreanDetected) {
-            textColor = 0xFF5555;
-        } else {
-            textColor = languageClicked ? 0xFFFF00 : 0xFFAA00;
-        }
+        if (ModuleSettings.isLanguageInputEnabled()) {
+            String languageText = isKorean ? "한글" : "English";
+            int languageX = 4;
+            int languageWidth = mc.fontRendererObj.getStringWidth(languageText);
 
-        Gui.drawRect(languageX - padding, baseY - padding,
-                languageX + languageWidth + padding, baseY + textHeight + padding,
-                languageHovering ? 0x40FFFFFF : 0x80000000);
-        mc.fontRendererObj.drawStringWithShadow(languageText, languageX, baseY, textColor);
+            boolean languageHovering = mouseX >= languageX - padding &&
+                    mouseX <= languageX + languageWidth + padding &&
+                    mouseY >= baseY - padding &&
+                    mouseY <= baseY + textHeight + padding;
+
+            if (languageHovering && mouseDown && !wasMouseDown) {
+                isKorean = !isKorean;
+                systemKoreanDetected = false;
+            }
+            languageClicked = languageHovering && mouseDown;
+
+            int textColor;
+            if (systemKoreanDetected) {
+                textColor = 0xFF5555;
+            } else {
+                textColor = languageClicked ? 0xFFFF00 : 0xFFAA00;
+            }
+
+            Gui.drawRect(languageX - padding, baseY - padding,
+                    languageX + languageWidth + padding, baseY + textHeight + padding,
+                    languageHovering ? 0x40FFFFFF : 0x80000000);
+            mc.fontRendererObj.drawStringWithShadow(languageText, languageX, baseY, textColor);
+        }
 
         String settingsText = "§l⚙";
-        int settingsX = isKorean ? 26 : 45;
+        int settingsX = ModuleSettings.isLanguageInputEnabled() ? (isKorean ? 26 : 45) : 4;
         int settingsWidth = 11;
         boolean settingsHovering = mouseX >= settingsX - padding &&
                 mouseX <= settingsX + settingsWidth + padding &&
                 mouseY >= baseY - padding &&
                 mouseY <= baseY + textHeight + padding;
+
+        if (settingsHovering && mouseDown && !wasMouseDown) {
+            settingsOpen = !settingsOpen;
+        }
+
+        wasMouseDown = mouseDown;
+
         Gui.drawRect(settingsX - padding, baseY - padding,
                 settingsX + settingsWidth + padding, baseY + textHeight + padding,
                 settingsHovering ? 0x40FFFFFF : 0x80000000);
         int textWidth = mc.fontRendererObj.getStringWidth(settingsText);
         int centeredX = settingsX + (settingsWidth - textWidth) / 2 + 1;
-        mc.fontRendererObj.drawStringWithShadow(settingsText, centeredX, baseY, 0xAAAAAA);
+        mc.fontRendererObj.drawStringWithShadow(settingsText, centeredX, baseY, settingsOpen ? 0xFFFFFF : 0xAAAAAA);
 
-        // Shout timer display
         int currentScoreboardTime = -1;
         boolean timerFound = false;
 
@@ -122,7 +133,7 @@ public class ChatOverlayListener {
             if (sidebar != null) {
                 Collection<Score> scores = scoreboard.getSortedScores(sidebar);
                 for (Score score : scores) {
-                    if (score.getScorePoints() == 12) { // Event timer score
+                    if (score.getScorePoints() == 12) {
                         ScorePlayerTeam team = scoreboard.getPlayersTeam(score.getPlayerName());
                         if (team != null) {
                             String suffix = team.getColorSuffix();
@@ -147,14 +158,13 @@ public class ChatOverlayListener {
             shoutJustHappened = false;
         }
 
-        // Only show shout timer if there's an active cooldown
         if (lastShoutScoreboardTime != -1 && timerFound) {
             int timeElapsed = lastShoutScoreboardTime - currentScoreboardTime;
             int remainingSeconds = SHOUT_COOLDOWN - timeElapsed;
 
             if (remainingSeconds > 0) {
                 String shoutText = "§6[SHOUT] §7in §c" + remainingSeconds + "§7s";
-                int shoutX = isKorean ? 43 : 62;
+                int shoutX = ModuleSettings.isLanguageInputEnabled() ? (isKorean ? 43 : 62) : 21;
                 int shoutWidth = mc.fontRendererObj.getStringWidth(shoutText);
 
                 Gui.drawRect(shoutX - padding, baseY - padding,

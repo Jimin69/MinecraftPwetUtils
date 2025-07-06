@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class AdditionalExpListener {
+    public static boolean isEnabled = true;
     private static int totalXP = 0;
     private static int timePlayedXP = 0;
     private static int resourcesXP = 0;
@@ -46,6 +47,8 @@ public class AdditionalExpListener {
 
     @SubscribeEvent
     public void onRender(RenderGameOverlayEvent.Pre event) {
+        if (!isEnabled) return;
+
         Minecraft mc = Minecraft.getMinecraft();
         boolean chatOpen = mc.currentScreen instanceof GuiChat;
 

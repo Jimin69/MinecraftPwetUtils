@@ -23,6 +23,7 @@ public class KoreanInputMixin {
     @Inject(method = "initGui", at = @At("TAIL"))
     public void onInitGui(CallbackInfo ci) {
         ChatOverlayListener.systemKoreanDetected = false;
+        ChatOverlayListener.settingsOpen = false;
     }
 
     @Inject(method = "keyTyped", at = @At("HEAD"), cancellable = true)
