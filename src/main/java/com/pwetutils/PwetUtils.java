@@ -10,7 +10,7 @@ import net.weavemc.loader.api.command.CommandBus;
 import net.weavemc.loader.api.event.EventBus;
 
 public class PwetUtils implements ModInitializer {
-    public static final String VERSION = "1.4.6";
+    public static final String VERSION = "1.4.8";
 
     @Override
     public void preInit() {

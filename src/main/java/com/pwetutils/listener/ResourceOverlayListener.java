@@ -46,10 +46,12 @@ public class ResourceOverlayListener {
                         ScorePlayerTeam team = scoreboard.getPlayersTeam(playerName);
 
                         if (team != null) {
+                            String prefix = team.getColorPrefix();
                             String suffix = team.getColorSuffix();
+                            String fullLine = prefix + playerName + suffix;
 
-                            if (suffix.matches(".*\\d+:\\d+.*")) {
-                                String timeStr = suffix.replaceAll("[^0-9:]", "");
+                            if (fullLine.matches(".*\\d+:\\d+.*")) {
+                                String timeStr = fullLine.replaceAll("[^0-9:]", "");
                                 int currentScoreboardTime = parseTime(timeStr);
 
                                 // Update total game time
@@ -145,7 +147,7 @@ public class ResourceOverlayListener {
     }
 
     private int calculateEmeraldTime(int totalSeconds) {
-        // Sync points
+        // sync
         if (totalSeconds == 0) return 86;
         if (totalSeconds == 720) return 40;   // 12:00
         if (totalSeconds == 1080) return 40;  // 18:00
@@ -155,7 +157,7 @@ public class ResourceOverlayListener {
         if (totalSeconds == 1980) return 1;   // 33:00
         if (totalSeconds == 2160) return 10;  // 36:00
 
-        // Calculate based on cycles
+        // calc based on cycles (calc stands for calculator im just using slang for anyone new to the stream)
         if (totalSeconds < 720) {
             // Tier I: 55s cycles
             if (totalSeconds < 86) return 86 - totalSeconds;
