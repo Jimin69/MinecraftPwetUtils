@@ -1,5 +1,6 @@
 package com.pwetutils.mixins;
 
+import com.pwetutils.settings.ModuleSettings;
 import net.minecraft.client.gui.GuiChat;
 import net.minecraft.client.gui.GuiTextField;
 import org.spongepowered.asm.mixin.Mixin;
@@ -15,6 +16,8 @@ public class ChatLimitMixin {
 
     @Inject(method = "initGui", at = @At("TAIL"))
     public void increaseChatLimit(CallbackInfo ci) {
-        inputField.setMaxStringLength(256);
+        if (ModuleSettings.isIncreaseChatLengthEnabled()) {
+            inputField.setMaxStringLength(256);
+        }
     }
 }

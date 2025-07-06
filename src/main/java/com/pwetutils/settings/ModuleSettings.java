@@ -4,6 +4,7 @@ public class ModuleSettings {
     private static boolean nameMentionEnabled = true;
     private static boolean chatWarningsEnabled = true;
     private static boolean languageInputEnabled = true;
+    private static boolean increaseChatLengthEnabled = true;
 
     public static boolean isNameMentionEnabled() {
         return nameMentionEnabled;
@@ -27,5 +28,13 @@ public class ModuleSettings {
 
     public static void setLanguageInputEnabled(boolean enabled) {
         languageInputEnabled = enabled;
+    }
+
+    public static boolean isIncreaseChatLengthEnabled() {
+        return increaseChatLengthEnabled;
+    }
+
+    public static void setIncreaseChatLengthEnabled(boolean enabled) {
+        increaseChatLengthEnabled = enabled;
     }
 }
