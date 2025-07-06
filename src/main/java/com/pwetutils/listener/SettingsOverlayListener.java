@@ -52,14 +52,14 @@ public class SettingsOverlayListener {
         String icon6 = "§7#";
         String icon7 = "§6A";
 
-        String status1 = ResourceOverlayListener.isEnabled ? "TRUE" : "FALSE";
-        int status1Color = ResourceOverlayListener.isEnabled ? 0x55FF55 : 0xFF5555;
+        String status1 = ModuleSettings.isResourceTimerEnabled() ? "TRUE" : "FALSE";
+        int status1Color = ModuleSettings.isResourceTimerEnabled() ? 0x55FF55 : 0xFF5555;
         String status2 = ModuleSettings.isChatWarningsEnabled() ? "TRUE" : "FALSE";
         int status2Color = ModuleSettings.isChatWarningsEnabled() ? 0x55FF55 : 0xFF5555;
-        String status3 = AdditionalExpListener.isEnabled ? "TRUE" : "FALSE";
-        int status3Color = AdditionalExpListener.isEnabled ? 0x55FF55 : 0xFF5555;
-        String status4 = EmoteHandler.areEmotesEnabled() ? "TRUE" : "FALSE";
-        int status4Color = EmoteHandler.areEmotesEnabled() ? 0x55FF55 : 0xFF5555;
+        String status3 = ModuleSettings.isExperienceCounterEnabled() ? "TRUE" : "FALSE";
+        int status3Color = ModuleSettings.isExperienceCounterEnabled() ? 0x55FF55 : 0xFF5555;
+        String status4 = ModuleSettings.isEmoteConverterEnabled() ? "TRUE" : "FALSE";
+        int status4Color = ModuleSettings.isEmoteConverterEnabled() ? 0x55FF55 : 0xFF5555;
         String status5 = ModuleSettings.isNameMentionEnabled() ? "TRUE" : "FALSE";
         int status5Color = ModuleSettings.isNameMentionEnabled() ? 0x55FF55 : 0xFF5555;
         String status6 = ModuleSettings.isIncreaseChatLengthEnabled() ? "TRUE" : "FALSE";
@@ -81,7 +81,6 @@ public class SettingsOverlayListener {
         int statusTextWidth = mc.fontRendererObj.getStringWidth(status7);
         int centeredStatusX = statusX + (statusWidth - statusTextWidth) / 2;
         mc.fontRendererObj.drawStringWithShadow(status7, centeredStatusX, y1, status7Color);
-
         if (hover1 && mouseDown && !wasMouseDown) {
             ModuleSettings.setLanguageInputEnabled(!ModuleSettings.isLanguageInputEnabled());
         }
@@ -100,7 +99,6 @@ public class SettingsOverlayListener {
         statusTextWidth = mc.fontRendererObj.getStringWidth(status6);
         centeredStatusX = statusX + (statusWidth - statusTextWidth) / 2;
         mc.fontRendererObj.drawStringWithShadow(status6, centeredStatusX, y2, status6Color);
-
         if (hover2 && mouseDown && !wasMouseDown) {
             ModuleSettings.setIncreaseChatLengthEnabled(!ModuleSettings.isIncreaseChatLengthEnabled());
         }
@@ -119,7 +117,6 @@ public class SettingsOverlayListener {
         statusTextWidth = mc.fontRendererObj.getStringWidth(status5);
         centeredStatusX = statusX + (statusWidth - statusTextWidth) / 2;
         mc.fontRendererObj.drawStringWithShadow(status5, centeredStatusX, y3, status5Color);
-
         if (hover3 && mouseDown && !wasMouseDown) {
             ModuleSettings.setNameMentionEnabled(!ModuleSettings.isNameMentionEnabled());
         }
@@ -138,9 +135,8 @@ public class SettingsOverlayListener {
         statusTextWidth = mc.fontRendererObj.getStringWidth(status4);
         centeredStatusX = statusX + (statusWidth - statusTextWidth) / 2;
         mc.fontRendererObj.drawStringWithShadow(status4, centeredStatusX, y4, status4Color);
-
         if (hover4 && mouseDown && !wasMouseDown) {
-            EmoteHandler.setEmotesEnabled(!EmoteHandler.areEmotesEnabled());
+            ModuleSettings.setEmoteConverterEnabled(!ModuleSettings.isEmoteConverterEnabled());
         }
 
         int y5 = y4 - height - padding * 2 - 1;
@@ -157,7 +153,6 @@ public class SettingsOverlayListener {
         statusTextWidth = mc.fontRendererObj.getStringWidth(status2);
         centeredStatusX = statusX + (statusWidth - statusTextWidth) / 2;
         mc.fontRendererObj.drawStringWithShadow(status2, centeredStatusX, y5, status2Color);
-
         if (hover5 && mouseDown && !wasMouseDown) {
             ModuleSettings.setChatWarningsEnabled(!ModuleSettings.isChatWarningsEnabled());
         }
@@ -176,9 +171,8 @@ public class SettingsOverlayListener {
         statusTextWidth = mc.fontRendererObj.getStringWidth(status3);
         centeredStatusX = statusX + (statusWidth - statusTextWidth) / 2;
         mc.fontRendererObj.drawStringWithShadow(status3, centeredStatusX, y6, status3Color);
-
         if (hover6 && mouseDown && !wasMouseDown) {
-            AdditionalExpListener.isEnabled = !AdditionalExpListener.isEnabled;
+            ModuleSettings.setExperienceCounterEnabled(!ModuleSettings.isExperienceCounterEnabled());
         }
 
         int y7 = y6 - height - padding * 2 - 1;
@@ -195,9 +189,8 @@ public class SettingsOverlayListener {
         statusTextWidth = mc.fontRendererObj.getStringWidth(status1);
         centeredStatusX = statusX + (statusWidth - statusTextWidth) / 2;
         mc.fontRendererObj.drawStringWithShadow(status1, centeredStatusX, y7, status1Color);
-
         if (hover7 && mouseDown && !wasMouseDown) {
-            ResourceOverlayListener.isEnabled = !ResourceOverlayListener.isEnabled;
+            ModuleSettings.setResourceTimerEnabled(!ModuleSettings.isResourceTimerEnabled());
         }
 
         wasMouseDown = mouseDown;

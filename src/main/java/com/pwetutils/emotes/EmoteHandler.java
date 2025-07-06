@@ -4,14 +4,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class EmoteHandler {
-    private static boolean emotesEnabled = true;
-    public static boolean areEmotesEnabled() {
-        return emotesEnabled;
-    }
-    public static void setEmotesEnabled(boolean enabled) {
-        emotesEnabled = enabled;
-    }
-
     public static boolean isEmote(String text) {
         return EMOTES.containsKey(text);
     }

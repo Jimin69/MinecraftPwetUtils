@@ -1,5 +1,6 @@
 package com.pwetutils.command;
 
+import com.pwetutils.settings.ModuleSettings;
 import net.weavemc.loader.api.command.Command;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.ChatComponentText;
@@ -36,12 +37,12 @@ public class PwetUtilsCommand extends Command {
             }
 
             if (args[1].equalsIgnoreCase("enable")) {
-                EmoteHandler.setEmotesEnabled(true);
+                ModuleSettings.setEmoteConverterEnabled(true);
                 mc.thePlayer.addChatMessage(
                         new ChatComponentText("§7[§6PwetUtils§7] §7Emote conversion has been §aenabled")
                 );
             } else if (args[1].equalsIgnoreCase("disable")) {
-                EmoteHandler.setEmotesEnabled(false);
+                ModuleSettings.setEmoteConverterEnabled(false);
                 mc.thePlayer.addChatMessage(
                         new ChatComponentText("§7[§6PwetUtils§7] §7Emote conversion has been §cdisabled")
                 );
@@ -62,12 +63,12 @@ public class PwetUtilsCommand extends Command {
             }
 
             if (args[1].equalsIgnoreCase("enable")) {
-                ResourceOverlayListener.isEnabled = true;
+                ModuleSettings.setResourceTimerEnabled(true);
                 mc.thePlayer.addChatMessage(
                         new ChatComponentText("§7[§6PwetUtils§7] §7Bedwars resource timer has been §aenabled")
                 );
             } else if (args[1].equalsIgnoreCase("disable")) {
-                ResourceOverlayListener.isEnabled = false;
+                ModuleSettings.setResourceTimerEnabled(false);
                 mc.thePlayer.addChatMessage(
                         new ChatComponentText("§7[§6PwetUtils§7] §7Bedwars resource timer has been §cdisabled")
                 );
@@ -88,12 +89,12 @@ public class PwetUtilsCommand extends Command {
             }
 
             if (args[1].equalsIgnoreCase("enable")) {
-                AdditionalExpListener.isEnabled = true;
+                ModuleSettings.setExperienceCounterEnabled(true);
                 mc.thePlayer.addChatMessage(
                         new ChatComponentText("§7[§6PwetUtils§7] §7Bedwars experience counter has been §aenabled")
                 );
             } else if (args[1].equalsIgnoreCase("disable")) {
-                AdditionalExpListener.isEnabled = false;
+                ModuleSettings.setExperienceCounterEnabled(false);
                 mc.thePlayer.addChatMessage(
                         new ChatComponentText("§7[§6PwetUtils§7] §7Bedwars experience counter has been §cdisabled")
                 );

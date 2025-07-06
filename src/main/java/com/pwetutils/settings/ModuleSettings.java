@@ -5,6 +5,9 @@ public class ModuleSettings {
     private static boolean chatWarningsEnabled = true;
     private static boolean languageInputEnabled = true;
     private static boolean increaseChatLengthEnabled = true;
+    private static boolean resourceTimerEnabled = true;
+    private static boolean experienceCounterEnabled = true;
+    private static boolean emoteConverterEnabled = true;
 
     public static boolean isNameMentionEnabled() {
         return nameMentionEnabled;
@@ -36,5 +39,29 @@ public class ModuleSettings {
 
     public static void setIncreaseChatLengthEnabled(boolean enabled) {
         increaseChatLengthEnabled = enabled;
+    }
+
+    public static boolean isResourceTimerEnabled() {
+        return resourceTimerEnabled;
+    }
+
+    public static void setResourceTimerEnabled(boolean enabled) {
+        resourceTimerEnabled = enabled;
+    }
+
+    public static boolean isExperienceCounterEnabled() {
+        return experienceCounterEnabled;
+    }
+
+    public static void setExperienceCounterEnabled(boolean enabled) {
+        experienceCounterEnabled = enabled;
+    }
+
+    public static boolean isEmoteConverterEnabled() {
+        return emoteConverterEnabled;
+    }
+
+    public static void setEmoteConverterEnabled(boolean enabled) {
+        emoteConverterEnabled = enabled;
     }
 }

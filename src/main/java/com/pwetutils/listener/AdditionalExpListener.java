@@ -1,5 +1,6 @@
 package com.pwetutils.listener;
 
+import com.pwetutils.settings.ModuleSettings;
 import net.weavemc.loader.api.event.RenderGameOverlayEvent;
 import net.weavemc.loader.api.event.SubscribeEvent;
 import net.minecraft.client.Minecraft;
@@ -10,7 +11,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class AdditionalExpListener {
-    public static boolean isEnabled = true;
     private static int totalXP = 0;
     private static int timePlayedXP = 0;
     private static int resourcesXP = 0;
@@ -47,7 +47,7 @@ public class AdditionalExpListener {
 
     @SubscribeEvent
     public void onRender(RenderGameOverlayEvent.Pre event) {
-        if (!isEnabled) return;
+        if (!ModuleSettings.isExperienceCounterEnabled()) return;
 
         Minecraft mc = Minecraft.getMinecraft();
         boolean chatOpen = mc.currentScreen instanceof GuiChat;

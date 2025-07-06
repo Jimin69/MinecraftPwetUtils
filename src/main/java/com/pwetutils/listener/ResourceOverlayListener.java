@@ -1,5 +1,6 @@
 package com.pwetutils.listener;
 
+import com.pwetutils.settings.ModuleSettings;
 import net.weavemc.loader.api.event.RenderGameOverlayEvent;
 import net.weavemc.loader.api.event.SubscribeEvent;
 import net.minecraft.client.Minecraft;
@@ -12,7 +13,6 @@ import net.minecraft.scoreboard.ScorePlayerTeam;
 import java.util.Collection;
 
 public class ResourceOverlayListener {
-    public static boolean isEnabled = true;
     private static boolean gameStarted = false;
     private static int lastScoreboardTime = -1;
     private static int totalGameTime = 0;
@@ -25,7 +25,7 @@ public class ResourceOverlayListener {
 
     @SubscribeEvent
     public void onRender(RenderGameOverlayEvent.Pre event) {
-        if (!isEnabled) return;
+        if (!ModuleSettings.isResourceTimerEnabled()) return;
         Minecraft mc = Minecraft.getMinecraft();
 
         String diamondTier = "§8III";
