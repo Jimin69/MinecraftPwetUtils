@@ -18,6 +18,7 @@ public class ChatOverlayListener {
     public static boolean systemKoreanDetected = false;
     public static boolean settingsOpen = false;
     private boolean wasCtrlPressed = false;
+    private boolean wasAltPressed = false;
     private boolean languageClicked = false;
     private boolean wasMouseDown = false;
 
@@ -58,6 +59,12 @@ public class ChatOverlayListener {
             settingsOpen = false;
             return;
         }
+
+        boolean altPressed = Keyboard.isKeyDown(Keyboard.KEY_LMENU);
+        if (altPressed && !wasAltPressed) {
+            settingsOpen = !settingsOpen;
+        }
+        wasAltPressed = altPressed;
 
         if (ModuleSettings.isLanguageInputEnabled()) {
             boolean ctrlPressed = Keyboard.isKeyDown(Keyboard.KEY_LCONTROL);

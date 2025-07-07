@@ -4,6 +4,10 @@ import com.pwetutils.settings.ModuleSettings;
 import net.weavemc.loader.api.command.Command;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.ChatComponentText;
+import net.minecraft.util.ChatStyle;
+import net.minecraft.event.ClickEvent;
+import net.minecraft.event.HoverEvent;
+import net.minecraft.util.IChatComponent;
 import com.pwetutils.PwetUtils;
 import com.pwetutils.emotes.EmoteHandler;
 import com.pwetutils.listener.ResourceOverlayListener;
@@ -25,6 +29,28 @@ public class PwetUtilsCommand extends Command {
             mc.thePlayer.addChatMessage(
                     new ChatComponentText("§7[§6PwetUtils§7] §7Mod version: §fv" + PwetUtils.VERSION)
             );
+            mc.thePlayer.addChatMessage(
+                    new ChatComponentText("§7[§6PwetUtils§7] §7Help: §e/pwetutils help §7 or §e/pu <args>§7 for short.")
+            );
+            return;
+        }
+
+        if (args[0].equalsIgnoreCase("help")) {
+            mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] §6§m----------------------------------------------"));
+            mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] §7/pwetutils §eDisplays mod info and version"));
+            mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] §7/pwetutils help §eDisplays this list of commands"));
+
+            sendModuleHelpMessage(mc, "bedwarsResourceTimer");
+            sendModuleHelpMessage(mc, "bedwarsExperienceCounter");
+            sendModuleHelpMessage(mc, "bedwarsChatWarnings");
+            sendModuleHelpMessage(mc, "emotes");
+            sendModuleHelpMessage(mc, "nameMentionIndicator");
+            sendModuleHelpMessage(mc, "increaseChatLength");
+            sendModuleHelpMessage(mc, "languageInputSwitch");
+
+            mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] §7/rq§8|§7/requeue §eJoin the last BedWars mode you played."));
+            mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] §7/b4s§8|§7/b4§8|§7/b3s§8|§7/b2s§8|§7/b1s §eJoin BedWars mode"));
+            mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] §6§m----------------------------------------------"));
             return;
         }
 
@@ -211,7 +237,32 @@ public class PwetUtilsCommand extends Command {
         }
 
         mc.thePlayer.addChatMessage(
-                new ChatComponentText("§7[§6PwetUtils§7] §7Unknown argument.")
+                new ChatComponentText("§7[§6PwetUtils§7] §7Unknown argument. Use §e/pwetutils help §7for command list.")
         );
+    }
+
+    private void sendModuleHelpMessage(Minecraft mc, String moduleName) {
+        ChatComponentText prefix = new ChatComponentText("§7[§6PwetUtils§7] §7/pwetutils " + moduleName + " §8<");
+
+        ChatComponentText enable = new ChatComponentText("§aenable");
+        enable.setChatStyle(new ChatStyle()
+                .setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ChatComponentText("§fClick to paste command")))
+                .setChatClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/pwetutils " + moduleName + " enable")));
+
+        ChatComponentText separator = new ChatComponentText("§8|");
+
+        ChatComponentText disable = new ChatComponentText("§cdisable");
+        disable.setChatStyle(new ChatStyle()
+                .setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ChatComponentText("§fClick to paste command")))
+                .setChatClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/pwetutils " + moduleName + " disable")));
+
+        ChatComponentText suffix = new ChatComponentText("§8>");
+
+        prefix.appendSibling(enable);
+        prefix.appendSibling(separator);
+        prefix.appendSibling(disable);
+        prefix.appendSibling(suffix);
+
+        mc.thePlayer.addChatMessage(prefix);
     }
 }

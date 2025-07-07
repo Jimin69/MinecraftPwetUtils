@@ -8,6 +8,11 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiChat;
 import net.minecraft.client.gui.ScaledResolution;
+import net.minecraft.util.ChatComponentText;
+import net.minecraft.util.ChatStyle;
+import net.minecraft.event.ClickEvent;
+import net.minecraft.event.HoverEvent;
+import net.minecraft.util.IChatComponent;
 import org.lwjgl.input.Mouse;
 
 public class SettingsOverlayListener {
@@ -35,6 +40,34 @@ public class SettingsOverlayListener {
         int mouseX = Mouse.getX() * sr.getScaledWidth() / mc.displayWidth;
         int mouseY = sr.getScaledHeight() - Mouse.getY() * sr.getScaledHeight() / mc.displayHeight - 1;
         boolean mouseDown = Mouse.isButtonDown(0);
+
+        int titleWidth = 190;
+        int titleY = baseY - (height + padding * 2 + 1) * 7;
+        String titleText = "§6PwetUtils Modules §7(/pwetutils help)";
+        boolean titleHover = mouseX >= iconX - padding && mouseX <= iconX + titleWidth + padding &&
+                mouseY >= titleY - padding && mouseY <= titleY + height + padding;
+        Gui.drawRect(iconX - padding, titleY - padding, iconX + titleWidth + padding, titleY + height + padding,
+                titleHover ? 0x40FFFFFF : 0x80000000);
+        int titleTextWidth = mc.fontRendererObj.getStringWidth(titleText);
+        int titleCenteredX = iconX + (titleWidth - titleTextWidth) / 2;
+        mc.fontRendererObj.drawStringWithShadow(titleText, titleCenteredX, titleY, 0xFFFFFF);
+
+        if (titleHover && mouseDown && !wasMouseDown) {
+            ChatOverlayListener.settingsOpen = false;
+            mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] §6§m----------------------------------------------"));
+            mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] §7/pwetutils §eDisplays mod info and version"));
+            mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] §7/pwetutils help §eDisplays this list of commands"));
+            sendModuleHelpMessage(mc, "bedwarsResourceTimer");
+            sendModuleHelpMessage(mc, "bedwarsExperienceCounter");
+            sendModuleHelpMessage(mc, "bedwarsChatWarnings");
+            sendModuleHelpMessage(mc, "emotes");
+            sendModuleHelpMessage(mc, "nameMentionIndicator");
+            sendModuleHelpMessage(mc, "increaseChatLength");
+            sendModuleHelpMessage(mc, "languageInputSwitch");
+            mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] §7/rq§8|§7/requeue §eJoin the last BedWars mode you played."));
+            mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] §7/b4s§8|§7/b4§8|§7/b3s§8|§7/b2s§8|§7/b1s §eJoin BedWars mode"));
+            mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] §6§m----------------------------------------------"));
+        }
 
         String module1 = "bedwarsResourceTimer";
         String module2 = "bedwarsChatWarnings";
@@ -194,5 +227,30 @@ public class SettingsOverlayListener {
         }
 
         wasMouseDown = mouseDown;
+    }
+
+    private void sendModuleHelpMessage(Minecraft mc, String moduleName) {
+        ChatComponentText prefix = new ChatComponentText("§7[§6PwetUtils§7] §7/pwetutils " + moduleName + " §8<");
+
+        ChatComponentText enable = new ChatComponentText("§aenable");
+        enable.setChatStyle(new ChatStyle()
+                .setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ChatComponentText("§fClick to paste command")))
+                .setChatClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/pwetutils " + moduleName + " enable")));
+
+        ChatComponentText separator = new ChatComponentText("§8|");
+
+        ChatComponentText disable = new ChatComponentText("§cdisable");
+        disable.setChatStyle(new ChatStyle()
+                .setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ChatComponentText("§fClick to paste command")))
+                .setChatClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/pwetutils " + moduleName + " disable")));
+
+        ChatComponentText suffix = new ChatComponentText("§8>");
+
+        prefix.appendSibling(enable);
+        prefix.appendSibling(separator);
+        prefix.appendSibling(disable);
+        prefix.appendSibling(suffix);
+
+        mc.thePlayer.addChatMessage(prefix);
     }
 }
