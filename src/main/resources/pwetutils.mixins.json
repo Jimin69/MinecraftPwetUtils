@@ -12,6 +12,7 @@
     "ResourceTimerMixin",
     "AdditionalExpMixin",
     "ShoutDetectorMixin",
-    "ChatRenderMixin"
+    "ChatRenderMixin",
+    "AutoFriendMixin"
   ]
 }

@@ -8,6 +8,7 @@ public class ModuleSettings {
     private static boolean resourceTimerEnabled = true;
     private static boolean experienceCounterEnabled = true;
     private static boolean emoteConverterEnabled = true;
+    private static boolean autoFriendAcceptEnabled = true;
 
     public static boolean isNameMentionEnabled() {
         return nameMentionEnabled;
@@ -63,5 +64,13 @@ public class ModuleSettings {
 
     public static void setEmoteConverterEnabled(boolean enabled) {
         emoteConverterEnabled = enabled;
+    }
+
+    public static boolean isAutoFriendAcceptEnabled() {
+        return autoFriendAcceptEnabled;
+    }
+
+    public static void setAutoFriendAcceptEnabled(boolean enabled) {
+        autoFriendAcceptEnabled = enabled;
     }
 }

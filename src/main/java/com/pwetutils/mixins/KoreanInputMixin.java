@@ -115,18 +115,17 @@ public class KoreanInputMixin {
         }
 
         if (Character.isLetter(typedChar)) {
-            char lower = Character.toLowerCase(typedChar);
             String text = inputField.getText();
             int cursor = inputField.getCursorPosition();
 
-            if (composing && cursor > 0 && shouldReplaceLastChar(lower)) {
+            if (composing && cursor > 0 && shouldReplaceLastChar(typedChar)) {
                 // only remove if modifying the same syllable
                 text = text.substring(0, cursor - 1) + text.substring(cursor);
                 inputField.setText(text);
                 inputField.setCursorPosition(cursor - 1);
             }
 
-            boolean handled = processKoreanInput(lower);
+            boolean handled = processKoreanInput(typedChar);
             if (handled) {
                 ci.cancel();
             }

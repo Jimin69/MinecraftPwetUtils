@@ -43,6 +43,7 @@ public class PwetUtilsCommand extends Command {
             sendModuleHelpMessage(mc, "bedwarsResourceTimer");
             sendModuleHelpMessage(mc, "bedwarsExperienceCounter");
             sendModuleHelpMessage(mc, "bedwarsChatWarnings");
+            sendModuleHelpMessage(mc, "hypixelAutoFriendKR");
             sendModuleHelpMessage(mc, "emotes");
             sendModuleHelpMessage(mc, "nameMentionIndicator");
             sendModuleHelpMessage(mc, "increaseChatLength");
@@ -231,6 +232,32 @@ public class PwetUtilsCommand extends Command {
             } else {
                 mc.thePlayer.addChatMessage(
                         new ChatComponentText("§7[§6PwetUtils§7] §7Usage: /pwetutils increaseChatLength <enable|disable>")
+                );
+            }
+            return;
+        }
+
+        if (args[0].equalsIgnoreCase("hypixelAutoFriendKR")) {
+            if (args.length < 2) {
+                mc.thePlayer.addChatMessage(
+                        new ChatComponentText("§7[§6PwetUtils§7] §7Usage: /pwetutils hypixelAutoFriendKR <enable|disable>")
+                );
+                return;
+            }
+
+            if (args[1].equalsIgnoreCase("enable")) {
+                ModuleSettings.setAutoFriendAcceptEnabled(true);
+                mc.thePlayer.addChatMessage(
+                        new ChatComponentText("§7[§6PwetUtils§7] §7Hypixel auto friend accept (KR) has been §aenabled")
+                );
+            } else if (args[1].equalsIgnoreCase("disable")) {
+                ModuleSettings.setAutoFriendAcceptEnabled(false);
+                mc.thePlayer.addChatMessage(
+                        new ChatComponentText("§7[§6PwetUtils§7] §7Hypixel auto friend accept (KR) has been §cdisabled")
+                );
+            } else {
+                mc.thePlayer.addChatMessage(
+                        new ChatComponentText("§7[§6PwetUtils§7] §7Usage: /pwetutils hypixelAutoFriendKR <enable|disable>")
                 );
             }
             return;
