@@ -2,6 +2,7 @@ package com.pwetutils.mixins;
 
 import com.pwetutils.listener.ChatOverlayListener;
 import com.pwetutils.listener.ResourceOverlayListener;
+import com.pwetutils.listener.GameStateTracker;
 import net.minecraft.client.network.NetHandlerPlayClient;
 import net.minecraft.network.play.server.S02PacketChat;
 import org.spongepowered.asm.mixin.Mixin;
@@ -19,6 +20,7 @@ public class ResourceTimerMixin {
                     text.contains("자신의 침대를 보호하고 적들의 침대를 파괴하세요.")) {
                 ResourceOverlayListener.startGame();
                 ChatOverlayListener.startGame();
+                GameStateTracker.reset();
             }
         }
     }

@@ -47,11 +47,9 @@ public class AdditionalExpListener {
 
     @SubscribeEvent
     public void onRender(RenderGameOverlayEvent.Pre event) {
-        if (!ModuleSettings.isExperienceCounterEnabled()) return;
-
+        if (!ModuleSettings.isExperienceCounterEnabled() || !GameStateTracker.shouldShowOverlays()) return;
         Minecraft mc = Minecraft.getMinecraft();
         boolean chatOpen = mc.currentScreen instanceof GuiChat;
-
         List<String> lines = new ArrayList<>();
 
         String xpValue = hasPlayedGame ? String.valueOf(totalXP) : "?";

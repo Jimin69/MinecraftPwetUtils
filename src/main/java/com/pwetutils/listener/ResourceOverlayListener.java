@@ -25,7 +25,7 @@ public class ResourceOverlayListener {
 
     @SubscribeEvent
     public void onRender(RenderGameOverlayEvent.Pre event) {
-        if (!ModuleSettings.isResourceTimerEnabled()) return;
+        if (!ModuleSettings.isResourceTimerEnabled() || !GameStateTracker.shouldShowOverlays()) return;
         Minecraft mc = Minecraft.getMinecraft();
 
         String diamondTier = "§8III";
