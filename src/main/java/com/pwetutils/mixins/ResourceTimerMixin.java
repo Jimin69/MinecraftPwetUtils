@@ -18,7 +18,12 @@ public class ResourceTimerMixin {
             String text = packet.getChatComponent().getUnformattedText();
             if (text.contains("Protect your bed and destroy the enemy beds.") ||
                     text.contains("자신의 침대를 보호하고 적들의 침대를 파괴하세요.")) {
-                ResourceOverlayListener.startGame();
+                ResourceOverlayListener.startGame(false);
+                ChatOverlayListener.startGame();
+                GameStateTracker.reset();
+            } else if (text.contains("All generators are maxed! Your bed has three") ||
+                    text.contains("모든 생성기가 최대치로 강화됩니다! 침대에 삼중 보호막이")) {
+                ResourceOverlayListener.startGame(true);
                 ChatOverlayListener.startGame();
                 GameStateTracker.reset();
             }

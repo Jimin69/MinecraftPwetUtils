@@ -14,13 +14,19 @@ import java.util.Collection;
 
 public class ResourceOverlayListener {
     private static boolean gameStarted = false;
+    private static boolean rushMode = false;
     private static int lastScoreboardTime = -1;
     private static int totalGameTime = 0;
 
-    public static void startGame() {
+    public static void startGame(boolean isRushMode) {
         gameStarted = true;
+        rushMode = isRushMode;
         lastScoreboardTime = -1;
         totalGameTime = 0;
+    }
+
+    public static void startGame() {
+        startGame(false);
     }
 
     @SubscribeEvent
@@ -28,8 +34,8 @@ public class ResourceOverlayListener {
         if (!ModuleSettings.isResourceTimerEnabled() || !GameStateTracker.shouldShowOverlays()) return;
         Minecraft mc = Minecraft.getMinecraft();
 
-        String diamondTier = "§8III";
-        String emeraldTier = "§8III";
+        String diamondTier = rushMode ? "§6III" : "§8III";
+        String emeraldTier = rushMode ? "§6III" : "§8III";
         String diamondTime = "?";
         String emeraldTime = "?";
 
@@ -54,19 +60,23 @@ public class ResourceOverlayListener {
                                 String timeStr = fullLine.replaceAll("[^0-9:]", "");
                                 int currentScoreboardTime = parseTime(timeStr);
 
-                                // Update total game time
                                 if (lastScoreboardTime != -1) {
                                     int timeDiff = lastScoreboardTime - currentScoreboardTime;
-                                    if (timeDiff < 0) timeDiff += 360; // Handle timer reset
+                                    if (timeDiff < 0) timeDiff += 360;
                                     totalGameTime += timeDiff;
                                 }
 
                                 lastScoreboardTime = currentScoreboardTime;
 
-                                diamondTime = String.valueOf(calculateDiamondTime(totalGameTime));
-                                emeraldTime = String.valueOf(calculateEmeraldTime(totalGameTime));
-                                diamondTier = getDiamondTier(totalGameTime);
-                                emeraldTier = getEmeraldTier(totalGameTime);
+                                if (rushMode) {
+                                    diamondTime = String.valueOf(12 - (totalGameTime % 12));
+                                    emeraldTime = String.valueOf(27 - (totalGameTime % 27));
+                                } else {
+                                    diamondTime = String.valueOf(calculateDiamondTime(totalGameTime));
+                                    emeraldTime = String.valueOf(calculateEmeraldTime(totalGameTime));
+                                    diamondTier = getDiamondTier(totalGameTime);
+                                    emeraldTier = getEmeraldTier(totalGameTime);
+                                }
                             }
                         }
                         break;
@@ -110,33 +120,28 @@ public class ResourceOverlayListener {
     }
 
     private int calculateDiamondTime(int totalSeconds) {
-        // Sync points
         if (totalSeconds == 0) return 31;
-        if (totalSeconds == 360) return 23;   // 6:00
-        if (totalSeconds == 720) return 1;    // 12:00
-        if (totalSeconds == 1080) return 12;  // 18:00
-        if (totalSeconds == 1260) return 2;   // 21:00
-        if (totalSeconds == 1440) return 2;   // 24:00
-        if (totalSeconds == 1620) return 3;   // 27:00
-        if (totalSeconds == 1800) return 4;   // 30:00
-        if (totalSeconds == 1980) return 5;   // 33:00
-        if (totalSeconds == 2160) return 5;   // 36:00
+        if (totalSeconds == 360) return 23;
+        if (totalSeconds == 720) return 1;
+        if (totalSeconds == 1080) return 12;
+        if (totalSeconds == 1260) return 2;
+        if (totalSeconds == 1440) return 2;
+        if (totalSeconds == 1620) return 3;
+        if (totalSeconds == 1800) return 4;
+        if (totalSeconds == 1980) return 5;
+        if (totalSeconds == 2160) return 5;
 
-        // Calculate based on cycles
         if (totalSeconds < 360) {
-            // Tier I: 30s cycles
             if (totalSeconds < 31) return 31 - totalSeconds;
             int elapsed = totalSeconds - 31;
             return 30 - (elapsed % 30);
         } else if (totalSeconds < 1080) {
-            // Tier II: 23s cycles
             int baseTime = findLastSyncTime(totalSeconds, new int[]{360, 720});
             int syncValue = (baseTime == 360) ? 23 : 1;
             int elapsed = totalSeconds - baseTime - syncValue;
             if (elapsed < 0) return -elapsed;
             return 23 - (elapsed % 23);
         } else {
-            // Tier III: 12s cycles
             int baseTime = findLastSyncTime(totalSeconds, new int[]{1080, 1260, 1440, 1620, 1800, 1980, 2160});
             int syncValue = getSyncValue(baseTime, new int[]{1080, 1260, 1440, 1620, 1800, 1980, 2160},
                     new int[]{12, 2, 2, 3, 4, 5, 5});
@@ -147,31 +152,26 @@ public class ResourceOverlayListener {
     }
 
     private int calculateEmeraldTime(int totalSeconds) {
-        // sync
         if (totalSeconds == 0) return 86;
-        if (totalSeconds == 720) return 40;   // 12:00
-        if (totalSeconds == 1080) return 40;  // 18:00
-        if (totalSeconds == 1440) return 27;  // 24:00
-        if (totalSeconds == 1620) return 9;   // 27:00
-        if (totalSeconds == 1800) return 19;  // 30:00
-        if (totalSeconds == 1980) return 1;   // 33:00
-        if (totalSeconds == 2160) return 10;  // 36:00
+        if (totalSeconds == 720) return 40;
+        if (totalSeconds == 1080) return 40;
+        if (totalSeconds == 1440) return 27;
+        if (totalSeconds == 1620) return 9;
+        if (totalSeconds == 1800) return 19;
+        if (totalSeconds == 1980) return 1;
+        if (totalSeconds == 2160) return 10;
 
-        // calc based on cycles (calc stands for calculator im just using slang for anyone new to the stream)
         if (totalSeconds < 720) {
-            // Tier I: 55s cycles
             if (totalSeconds < 86) return 86 - totalSeconds;
             int elapsed = totalSeconds - 86;
             return 55 - (elapsed % 55);
         } else if (totalSeconds < 1440) {
-            // Tier II: 40s cycles
             int baseTime = findLastSyncTime(totalSeconds, new int[]{720, 1080});
             int syncValue = 40;
             int elapsed = totalSeconds - baseTime - syncValue;
             if (elapsed < 0) return -elapsed;
             return 40 - (elapsed % 40);
         } else {
-            // Tier III: 27s cycles
             int baseTime = findLastSyncTime(totalSeconds, new int[]{1440, 1620, 1800, 1980, 2160});
             int syncValue = getSyncValue(baseTime, new int[]{1440, 1620, 1800, 1980, 2160},
                     new int[]{27, 9, 19, 1, 10});
