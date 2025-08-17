@@ -13,6 +13,7 @@
     "AdditionalExpMixin",
     "ShoutDetectorMixin",
     "ChatRenderMixin",
-    "AutoFriendMixin"
+    "AutoFriendMixin",
+    "EntityPlayerSPMixin"
   ]
 }
