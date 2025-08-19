@@ -31,6 +31,10 @@ public class SettingsOverlayListener {
                 ModuleSettings::isExperienceCounterEnabled,
                 ModuleSettings::setExperienceCounterEnabled));
 
+        modules.add(new ModuleItem("§c/", "bedwarsSessionCounter",
+                ModuleSettings::isSessionCounterEnabled,
+                ModuleSettings::setSessionCounterEnabled));
+
         modules.add(new ModuleItem("§b§l!", "bedwarsChatWarnings",
                 ModuleSettings::isChatWarningsEnabled,
                 ModuleSettings::setChatWarningsEnabled));

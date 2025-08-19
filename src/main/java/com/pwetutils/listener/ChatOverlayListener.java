@@ -17,6 +17,7 @@ public class ChatOverlayListener {
     public static boolean isKorean = false;
     public static boolean systemKoreanDetected = false;
     public static boolean settingsOpen = false;
+    private boolean expCalculatorOpen = false;
     private boolean wasCtrlPressed = false;
     private boolean wasAltPressed = false;
     private boolean languageClicked = false;
@@ -123,6 +124,54 @@ public class ChatOverlayListener {
 
         if (settingsHovering && mouseDown && !wasMouseDown) {
             settingsOpen = !settingsOpen;
+        }
+
+        if (ModuleSettings.isSessionCounterEnabled()) {
+            // EXP Calculator button (right side)
+            String expText = expCalculatorOpen ? "§f[§f_/\\§f]" : "§f[§c_/\\§f]";
+            int expWidth = mc.fontRendererObj.getStringWidth(expText);
+            int expX = sr.getScaledWidth() - expWidth - 4;
+            boolean expHovering = mouseX >= expX - padding &&
+                    mouseX <= expX + expWidth + padding &&
+                    mouseY >= baseY - padding &&
+                    mouseY <= baseY + textHeight + padding;
+
+            if (expHovering && mouseDown && !wasMouseDown) {
+                expCalculatorOpen = !expCalculatorOpen;
+            }
+
+            Gui.drawRect(expX - padding, baseY - padding,
+                    expX + expWidth + padding, baseY + textHeight + padding,
+                    expHovering ? 0x40FFFFFF : 0x80000000);
+            mc.fontRendererObj.drawStringWithShadow(expText, expX, baseY, 0xFFFFFF);
+
+            // EXP Calculator stats box
+            if (expCalculatorOpen) {
+                String line1 = "§e§l Current BedWars Session ";
+                String xpValue = AdditionalExpListener.isSessionStarted() ?
+                        String.valueOf(AdditionalExpListener.getSessionTotalXP()) : "?";
+                String line2 = "§6BedWars session: §b" + xpValue + " §7XP";
+                String line3 = "§6Session length: §e" + AdditionalExpListener.getSessionDuration();
+                String line4 = "§6Stars gained: " + AdditionalExpListener.getStarsGained();
+
+                int maxWidth = Math.max(mc.fontRendererObj.getStringWidth(line1),
+                        Math.max(mc.fontRendererObj.getStringWidth(line2),
+                                Math.max(mc.fontRendererObj.getStringWidth(line3),
+                                        mc.fontRendererObj.getStringWidth(line4))));
+
+                int statsX = sr.getScaledWidth() - maxWidth - 4;
+                int statsY = baseY - textHeight - padding * 2 - 35;
+                int statsHeight = textHeight * 4 + 6;
+
+                Gui.drawRect(statsX - padding, statsY - padding,
+                        statsX + maxWidth + padding, statsY + statsHeight + padding,
+                        0x80000000);
+
+                mc.fontRendererObj.drawStringWithShadow(line1, statsX, statsY, 0xFFFFFF);
+                mc.fontRendererObj.drawStringWithShadow(line2, statsX, statsY + textHeight + 2, 0xFFFFFF);
+                mc.fontRendererObj.drawStringWithShadow(line3, statsX, statsY + (textHeight + 2) * 2, 0xFFFFFF);
+                mc.fontRendererObj.drawStringWithShadow(line4, statsX, statsY + (textHeight + 2) * 3, 0xFFFFFF);
+            }
         }
 
         wasMouseDown = mouseDown;

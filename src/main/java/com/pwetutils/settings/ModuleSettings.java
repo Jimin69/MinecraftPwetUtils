@@ -7,6 +7,7 @@ public class ModuleSettings {
     private static boolean increaseChatLengthEnabled = true;
     private static boolean resourceTimerEnabled = true;
     private static boolean experienceCounterEnabled = true;
+    private static boolean sessionCounterEnabled = true;
     private static boolean emoteConverterEnabled = true;
     private static boolean autoFriendAcceptEnabled = true;
 
@@ -56,6 +57,13 @@ public class ModuleSettings {
 
     public static void setExperienceCounterEnabled(boolean enabled) {
         experienceCounterEnabled = enabled;
+    }
+
+    public static boolean isSessionCounterEnabled() {
+        return sessionCounterEnabled;
+    }
+    public static void setSessionCounterEnabled(boolean enabled) {
+        sessionCounterEnabled = enabled;
     }
 
     public static boolean isEmoteConverterEnabled() {

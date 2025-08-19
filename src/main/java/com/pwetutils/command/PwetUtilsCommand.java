@@ -48,6 +48,7 @@ public class PwetUtilsCommand extends Command {
             sendModuleHelpMessage(mc, "nameMentionIndicator");
             sendModuleHelpMessage(mc, "increaseChatLength");
             sendModuleHelpMessage(mc, "languageInputSwitch");
+            sendModuleHelpMessage(mc, "bedwarsSessionCounter");
 
             mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] §7/rq§8|§7/requeue §eJoin the last BedWars mode you played."));
             mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] §7/b4s§8|§7/b4§8|§7/b3s§8|§7/b2s§8|§7/b1s §eJoin BedWars mode"));
@@ -128,6 +129,32 @@ public class PwetUtilsCommand extends Command {
             } else {
                 mc.thePlayer.addChatMessage(
                         new ChatComponentText("§7[§6PwetUtils§7] §7Usage: /pwetutils bedwarsExperienceCounter <enable|disable>")
+                );
+            }
+            return;
+        }
+
+        if (args[0].equalsIgnoreCase("bedwarsSessionCounter")) {
+            if (args.length < 2) {
+                mc.thePlayer.addChatMessage(
+                        new ChatComponentText("§7[§6PwetUtils§7] §7Usage: /pwetutils bedwarsSessionCounter <enable|disable>")
+                );
+                return;
+            }
+
+            if (args[1].equalsIgnoreCase("enable")) {
+                ModuleSettings.setSessionCounterEnabled(true);
+                mc.thePlayer.addChatMessage(
+                        new ChatComponentText("§7[§6PwetUtils§7] §7Bedwars session counter has been §aenabled")
+                );
+            } else if (args[1].equalsIgnoreCase("disable")) {
+                ModuleSettings.setSessionCounterEnabled(false);
+                mc.thePlayer.addChatMessage(
+                        new ChatComponentText("§7[§6PwetUtils§7] §7Bedwars session counter has been §cdisabled")
+                );
+            } else {
+                mc.thePlayer.addChatMessage(
+                        new ChatComponentText("§7[§6PwetUtils§7] §7Usage: /pwetutils bedwarsSessionCounter <enable|disable>")
                 );
             }
             return;

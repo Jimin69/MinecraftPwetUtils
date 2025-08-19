@@ -17,10 +17,14 @@ public class AdditionalExpListener {
     private static int killsXP = 0;
     private static int bedsXP = 0;
     private static int bonusXP = 0;
+    private static int sessionTotalXP = 0;
+    private static long sessionStartTime = 0;
+    private static boolean sessionStarted = false;
     private static boolean hasPlayedGame = false;
 
     public static void addXP(int amount, String source) {
         totalXP += amount;
+        sessionTotalXP += amount;
 
         if (source.contains("Time Played")) {
             timePlayedXP += amount;
@@ -36,6 +40,11 @@ public class AdditionalExpListener {
     }
 
     public static void startGame() {
+        if (!sessionStarted) {
+            sessionStarted = true;
+            sessionStartTime = System.currentTimeMillis();
+            sessionTotalXP = 0;
+        }
         hasPlayedGame = true;
         totalXP = 0;
         timePlayedXP = 0;
@@ -43,6 +52,32 @@ public class AdditionalExpListener {
         killsXP = 0;
         bedsXP = 0;
         bonusXP = 0;
+    }
+
+    public static int getSessionTotalXP() {
+        return sessionTotalXP;
+    }
+
+    public static boolean isSessionStarted() {
+        return sessionStarted;
+    }
+
+    public static String getSessionDuration() {
+        if (!sessionStarted) return "?§7m";
+        long elapsed = System.currentTimeMillis() - sessionStartTime;
+        int minutes = (int) (elapsed / 60000);
+        int hours = minutes / 60;
+        minutes = minutes % 60;
+        if (hours > 0) {
+            return hours + "§7h §e" + minutes + "§7m";
+        }
+        return minutes + "§7m";
+    }
+
+    public static String getStarsGained() {
+        if (!sessionStarted) return "§7✫?";
+        double stars = sessionTotalXP / 5000.0;
+        return String.format("§7✫%.2f", stars);
     }
 
     @SubscribeEvent
