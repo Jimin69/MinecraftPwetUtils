@@ -77,7 +77,59 @@ public class AdditionalExpListener {
     public static String getStarsGained() {
         if (!sessionStarted) return "§7✫?";
         double stars = sessionTotalXP / 5000.0;
-        return String.format("§7✫%.2f", stars);
+        boolean capped = false;
+
+        if (stars > 20.99) {
+            stars = 20.99;
+            capped = true;
+        }
+
+        if (stars >= 20.00) {
+            String formatted = String.format("%.2f", stars);
+            String base = "§7✪§8" + formatted.charAt(0) + "§7" + formatted.charAt(1) + "§f" + formatted.charAt(2) + "§7" + formatted.charAt(3) + "§8" + formatted.charAt(4);
+            return capped ? base + "§b+" : base;
+        } else if (stars >= 19.00) {
+            return String.format("§8✪§5%.2f", stars);
+        } else if (stars >= 18.00) {
+            return String.format("§1✪§9%.2f", stars);
+        } else if (stars >= 17.00) {
+            return String.format("§5✪§d%.2f", stars);
+        } else if (stars >= 16.00) {
+            return String.format("§4✪§c%.2f", stars);
+        } else if (stars >= 15.00) {
+            return String.format("§9✪§3%.2f", stars);
+        } else if (stars >= 14.00) {
+            return String.format("§2✪§a%.2f", stars);
+        } else if (stars >= 13.00) {
+            return String.format("§3✪§b%.2f", stars);
+        } else if (stars >= 12.00) {
+            return String.format("§6✪§e%.2f", stars);
+        } else if (stars >= 11.00) {
+            return String.format("§7✪§f%.2f", stars);
+        } else if (stars >= 10.00) {
+            String formatted = String.format("%.2f", stars);
+            return "§d✫§c" + formatted.charAt(0) + "§6" + formatted.charAt(1) + "§e" + formatted.charAt(2) + "§a" + formatted.charAt(3) + "§b" + formatted.charAt(4);
+        } else if (stars >= 9.00) {
+            return String.format("§5✫%.2f", stars);
+        } else if (stars >= 8.00) {
+            return String.format("§9✫%.2f", stars);
+        } else if (stars >= 7.00) {
+            return String.format("§d✫%.2f", stars);
+        } else if (stars >= 6.00) {
+            return String.format("§4✫%.2f", stars);
+        } else if (stars >= 5.00) {
+            return String.format("§3✫%.2f", stars);
+        } else if (stars >= 4.00) {
+            return String.format("§2✫%.2f", stars);
+        } else if (stars >= 3.00) {
+            return String.format("§b✫%.2f", stars);
+        } else if (stars >= 2.00) {
+            return String.format("§2✫%.2f", stars);
+        } else if (stars >= 1.00) {
+            return String.format("§f✫%.2f", stars);
+        } else {
+            return String.format("§7✫%.2f", stars);
+        }
     }
 
     @SubscribeEvent
