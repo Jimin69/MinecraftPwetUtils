@@ -39,6 +39,18 @@ public class AdditionalExpListener {
         }
     }
 
+    public static void addManualSession(int xp, int minutes) {
+        if (!sessionStarted) {
+            sessionStarted = true;
+            sessionStartTime = System.currentTimeMillis();
+            sessionTotalXP = 0;
+        }
+
+        sessionTotalXP += xp;
+        // Adjust session start time to account for added minutes
+        sessionStartTime -= (minutes * 60000L);
+    }
+
     public static void startGame() {
         if (!sessionStarted) {
             sessionStarted = true;

@@ -1,6 +1,7 @@
 package com.pwetutils.command;
 
 import com.pwetutils.settings.ModuleSettings;
+import com.pwetutils.listener.AdditionalExpListener;
 import net.weavemc.loader.api.command.Command;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.ChatComponentText;
@@ -11,7 +12,6 @@ import net.minecraft.util.IChatComponent;
 import com.pwetutils.PwetUtils;
 import com.pwetutils.emotes.EmoteHandler;
 import com.pwetutils.listener.ResourceOverlayListener;
-import com.pwetutils.listener.AdditionalExpListener;
 
 public class PwetUtilsCommand extends Command {
     public PwetUtilsCommand() {
@@ -42,13 +42,13 @@ public class PwetUtilsCommand extends Command {
 
             sendModuleHelpMessage(mc, "bedwarsResourceTimer");
             sendModuleHelpMessage(mc, "bedwarsExperienceCounter");
+            sendModuleHelpMessage(mc, "bedwarsSessionCounter");
             sendModuleHelpMessage(mc, "bedwarsChatWarnings");
             sendModuleHelpMessage(mc, "hypixelAutoFriendKR");
             sendModuleHelpMessage(mc, "emotes");
             sendModuleHelpMessage(mc, "nameMentionIndicator");
             sendModuleHelpMessage(mc, "increaseChatLength");
             sendModuleHelpMessage(mc, "languageInputSwitch");
-            sendModuleHelpMessage(mc, "bedwarsSessionCounter");
 
             mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] §7/rq§8|§7/requeue §eJoin the last BedWars mode you played."));
             mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] §7/b4s§8|§7/b4§8|§7/b3s§8|§7/b2s§8|§7/b1s §eJoin BedWars mode"));
@@ -137,7 +137,7 @@ public class PwetUtilsCommand extends Command {
         if (args[0].equalsIgnoreCase("bedwarsSessionCounter")) {
             if (args.length < 2) {
                 mc.thePlayer.addChatMessage(
-                        new ChatComponentText("§7[§6PwetUtils§7] §7Usage: /pwetutils bedwarsSessionCounter <enable|disable>")
+                        new ChatComponentText("§7[§6PwetUtils§7] §7Usage: /pwetutils bedwarsSessionCounter <enable|disable|add>")
                 );
                 return;
             }
@@ -152,9 +152,37 @@ public class PwetUtilsCommand extends Command {
                 mc.thePlayer.addChatMessage(
                         new ChatComponentText("§7[§6PwetUtils§7] §7Bedwars session counter has been §cdisabled")
                 );
+            } else if (args[1].equalsIgnoreCase("add")) {
+                if (args.length < 4) {
+                    mc.thePlayer.addChatMessage(
+                            new ChatComponentText("§7[§6PwetUtils§7] §7Usage: /pwetutils bedwarsSessionCounter add <exp> <minutes>")
+                    );
+                    return;
+                }
+
+                try {
+                    int exp = Integer.parseInt(args[2]);
+                    int minutes = Integer.parseInt(args[3]);
+
+                    if (exp < 0 || minutes < 0) {
+                        mc.thePlayer.addChatMessage(
+                                new ChatComponentText("§7[§6PwetUtils§7] §cValues must be positive numbers")
+                        );
+                        return;
+                    }
+
+                    AdditionalExpListener.addManualSession(exp, minutes);
+                    mc.thePlayer.addChatMessage(
+                            new ChatComponentText("§7[§6PwetUtils§7] §7Added §e" + exp + " §7XP and §e" + minutes + " §7minutes to session counter")
+                    );
+                } catch (NumberFormatException e) {
+                    mc.thePlayer.addChatMessage(
+                            new ChatComponentText("§7[§6PwetUtils§7] §cInvalid numbers provided")
+                    );
+                }
             } else {
                 mc.thePlayer.addChatMessage(
-                        new ChatComponentText("§7[§6PwetUtils§7] §7Usage: /pwetutils bedwarsSessionCounter <enable|disable>")
+                        new ChatComponentText("§7[§6PwetUtils§7] §7Usage: /pwetutils bedwarsSessionCounter <enable|disable|add>")
                 );
             }
             return;
