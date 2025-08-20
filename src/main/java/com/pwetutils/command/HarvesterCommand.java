@@ -12,6 +12,7 @@ import java.util.concurrent.ThreadLocalRandom;
 public class HarvesterCommand extends Command {
     private static boolean harvesterActive = false;
     private static boolean interrupted = false;
+    private static float anvilSoundVolume = 0.3F;
     private static Thread harvesterThread;
     private static Thread soundThread;
     private static Thread interruptedCheckThread;
@@ -28,7 +29,7 @@ public class HarvesterCommand extends Command {
     private static int rightMoveTicks = 5;
 
     public HarvesterCommand() {
-        super("harvester");
+        super("harvester", "h", "harvest");
     }
 
     public static boolean isActive() {
@@ -122,6 +123,24 @@ public class HarvesterCommand extends Command {
         }
     }
 
+    private static void playPreviewSound() {
+        new Thread(() -> {
+            for (int i = 0; i < 2; i++) {
+                Minecraft.getMinecraft().addScheduledTask(() -> {
+                    Minecraft mc = Minecraft.getMinecraft();
+                    if (mc.thePlayer != null) {
+                        mc.thePlayer.playSound("random.anvil_land", anvilSoundVolume, 2.0F);
+                    }
+                });
+                try {
+                    Thread.sleep(200);
+                } catch (InterruptedException e) {
+                    return;
+                }
+            }
+        }).start();
+    }
+
     private static void startSoundLoop() {
         stopSoundLoop();
         soundThread = new Thread(() -> {
@@ -131,7 +150,7 @@ public class HarvesterCommand extends Command {
                     Minecraft.getMinecraft().addScheduledTask(() -> {
                         Minecraft mc = Minecraft.getMinecraft();
                         if (mc.thePlayer != null && interrupted) {
-                            mc.thePlayer.playSound("random.anvil_land", 0.3F, 2.0F);
+                            mc.thePlayer.playSound("random.anvil_land", anvilSoundVolume, 2.0F);
                         }
                     });
                     try {
@@ -162,7 +181,29 @@ public class HarvesterCommand extends Command {
         Minecraft mc = Minecraft.getMinecraft();
 
         if (args.length == 0) {
-            mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Usage: /harvester <on|off>"));
+            mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Usage: /harvester <on|off|sound>"));
+            return;
+        }
+
+        if (args[0].equalsIgnoreCase("sound")) {
+            if (args.length == 1) {
+                // No value provided, show current and play preview
+                mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Current anvil sound volume: §e" + anvilSoundVolume));
+                playPreviewSound();
+            } else {
+                try {
+                    float newVolume = Float.parseFloat(args[1]);
+                    if (newVolume < 0 || newVolume > 1) {
+                        mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] §cVolume must be between 0.0 and 1.0"));
+                        return;
+                    }
+                    anvilSoundVolume = newVolume;
+                    mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Anvil sound volume set to: §e" + anvilSoundVolume));
+                    playPreviewSound();
+                } catch (NumberFormatException e) {
+                    mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] §cInvalid number format"));
+                }
+            }
             return;
         }
 
