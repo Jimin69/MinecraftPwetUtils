@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "com.pwetutils"
-version = "1.6.5"
+version = "1.7.0"
 
 minecraft.version("1.8.9")
 

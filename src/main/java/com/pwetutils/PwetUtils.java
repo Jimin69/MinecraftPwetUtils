@@ -1,16 +1,13 @@
 package com.pwetutils;
 
 import com.pwetutils.command.*;
-import com.pwetutils.listener.ChatOverlayListener;
-import com.pwetutils.listener.ResourceOverlayListener;
-import com.pwetutils.listener.AdditionalExpListener;
-import com.pwetutils.listener.SettingsOverlayListener;
+import com.pwetutils.listener.*;
 import net.weavemc.loader.api.ModInitializer;
 import net.weavemc.loader.api.command.CommandBus;
 import net.weavemc.loader.api.event.EventBus;
 
 public class PwetUtils implements ModInitializer {
-    public static final String VERSION = "1.6.5";
+    public static final String VERSION = "1.7.0";
 
     @Override
     public void preInit() {
@@ -22,9 +19,11 @@ public class PwetUtils implements ModInitializer {
         CommandBus.register(new BedwarsFoursCommand());
         CommandBus.register(new Bedwars4Command());
         CommandBus.register(new RequeueCommand());
+        CommandBus.register(new HarvesterCommand());
         EventBus.subscribe(new ChatOverlayListener());
         EventBus.subscribe(new ResourceOverlayListener());
         EventBus.subscribe(new AdditionalExpListener());
         EventBus.subscribe(new SettingsOverlayListener());
+        EventBus.subscribe(new HarvesterOverlayListener());
     }
 }
