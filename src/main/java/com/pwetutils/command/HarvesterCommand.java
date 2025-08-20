@@ -53,10 +53,8 @@ public class HarvesterCommand extends Command {
     public static void stopByTrigger() {
         if (!harvesterActive && !interrupted) return;
         if (harvesterActive) {
-            // If harvester is running, interrupt it with game server change message
             interruptByGameChange();
         }
-        // Don't stop if already interrupted - let it continue playing
     }
 
     private static void interruptByGameChange() {
@@ -95,7 +93,6 @@ public class HarvesterCommand extends Command {
             while (interrupted) {
                 Minecraft mc = Minecraft.getMinecraft();
                 if (mc.theWorld == null || mc.thePlayer == null) {
-                    // Player disconnected while interrupted - clean up everything
                     interrupted = false;
                     harvesterActive = false;
                     HarvesterOverlayListener.setInterrupted(false);
@@ -114,7 +111,6 @@ public class HarvesterCommand extends Command {
     }
 
     public static void stopOnDisconnect() {
-        // Clean up everything on disconnect
         interrupted = false;
         harvesterActive = false;
         HarvesterOverlayListener.setInterrupted(false);
@@ -127,10 +123,9 @@ public class HarvesterCommand extends Command {
     }
 
     private static void startSoundLoop() {
-        stopSoundLoop(); // Make sure no duplicate threads
+        stopSoundLoop();
         soundThread = new Thread(() -> {
             while (interrupted) {
-                // Play twice for "ding ding" effect
                 for (int i = 0; i < 2; i++) {
                     if (!interrupted) break;
                     Minecraft.getMinecraft().addScheduledTask(() -> {
@@ -140,13 +135,13 @@ public class HarvesterCommand extends Command {
                         }
                     });
                     try {
-                        Thread.sleep(200); // 200ms between dings
+                        Thread.sleep(200);
                     } catch (InterruptedException e) {
                         return;
                     }
                 }
                 try {
-                    Thread.sleep(3600); // Wait remaining time (4000 - 400 = 3600ms)
+                    Thread.sleep(3600);
                 } catch (InterruptedException e) {
                     break;
                 }
@@ -283,7 +278,7 @@ public class HarvesterCommand extends Command {
                         int currentTick = tickCounter.get();
 
                         if (currentPhase == 0) {
-                            // First movement
+                            // first movement
                             KeyBinding.setKeyBindState(leftKey, leftFirst);
                             KeyBinding.setKeyBindState(rightKey, !leftFirst);
                             if (currentTick >= (leftFirst ? leftMoveTicks : rightMoveTicks)) {
@@ -293,7 +288,7 @@ public class HarvesterCommand extends Command {
                                 KeyBinding.setKeyBindState(rightKey, true);
                             }
                         } else if (currentPhase == 1) {
-                            // Pause with both keys
+                            // pause with both keys
                             KeyBinding.setKeyBindState(leftKey, true);
                             KeyBinding.setKeyBindState(rightKey, true);
                             if (currentTick >= pauseTicks) {
@@ -301,22 +296,22 @@ public class HarvesterCommand extends Command {
                                 tickCounter.set(0);
                             }
                         } else if (currentPhase == 2) {
-                            // Opposite movement
+                            // opposite movement
                             KeyBinding.setKeyBindState(leftKey, !leftFirst);
                             KeyBinding.setKeyBindState(rightKey, leftFirst);
                             if (currentTick >= (leftFirst ? rightMoveTicks : leftMoveTicks)) {
                                 if (shouldRepeat.get()) {
-                                    phase.set(4); // Short wait before repeat (0.75 seconds = 15 ticks)
+                                    phase.set(4); // 0.75 seconds = 15 ticks
                                     shouldRepeat.set(false);
                                 } else {
-                                    phase.set(3); // Normal wait
+                                    phase.set(3);
                                 }
                                 tickCounter.set(0);
                                 KeyBinding.setKeyBindState(leftKey, true);
                                 KeyBinding.setKeyBindState(rightKey, true);
                             }
                         } else if (currentPhase == 3) {
-                            // Normal wait period
+                            // normal wait period
                             KeyBinding.setKeyBindState(leftKey, true);
                             KeyBinding.setKeyBindState(rightKey, true);
                             if (currentTick >= waitTicks.get()) {
@@ -327,11 +322,11 @@ public class HarvesterCommand extends Command {
                                 shouldRepeat.set(ThreadLocalRandom.current().nextBoolean());
                             }
                         } else if (currentPhase == 4) {
-                            // Short wait before repeat (0.75 seconds = 15 ticks)
+                            // short wait before repeat, 0.75 seconds = 15 ticks
                             KeyBinding.setKeyBindState(leftKey, true);
                             KeyBinding.setKeyBindState(rightKey, true);
                             if (currentTick >= 15) {
-                                phase.set(0); // Repeat the pattern
+                                phase.set(0); // repeat the pattern
                                 tickCounter.set(0);
                             }
                         }

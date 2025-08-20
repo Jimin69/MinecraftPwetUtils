@@ -14,7 +14,6 @@ public class HarvesterDetectorMixin {
     private void onHandleChat(S02PacketChat packet, CallbackInfo ci) {
         if (packet.getChatComponent() != null) {
             String text = packet.getChatComponent().getUnformattedText();
-            // Detect server change via JSON message
             if (text.startsWith("{") && text.contains("\"server\":") && text.contains("\"gametype\":")) {
                 HarvesterCommand.stopByTrigger();
             }

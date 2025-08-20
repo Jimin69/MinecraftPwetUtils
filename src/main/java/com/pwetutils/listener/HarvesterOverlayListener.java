@@ -31,7 +31,6 @@ public class HarvesterOverlayListener {
     public void onRender(RenderGameOverlayEvent.Pre event) {
         if (!GameStateTracker.shouldShowOverlays()) return;
 
-        // Check if we should show shutdown state
         boolean showShutdown = false;
         if (shutdownTime > 0) {
             if (System.currentTimeMillis() - shutdownTime < 3000) {
@@ -45,8 +44,6 @@ public class HarvesterOverlayListener {
         if (!HarvesterCommand.isActive() && !showShutdown && !interrupted) return;
 
         Minecraft mc = Minecraft.getMinecraft();
-
-        // Calculate resource timer box width to position harvester box
         String text1 = "§8III §bDiamonds §7spawn in §e?§7s";
         String text2 = "§8III §2Emeralds §7spawn in §e?§7s";
         int resourceWidth = Math.max(mc.fontRendererObj.getStringWidth(text1), mc.fontRendererObj.getStringWidth(text2));
@@ -55,7 +52,6 @@ public class HarvesterOverlayListener {
         int baseX = 4 + resourceWidth + padding + 2 + 2;
         int baseY = 2 + 2;
 
-        // Cogwheel indicator box
         int boxSize = mc.fontRendererObj.FONT_HEIGHT * 2 + 2;
 
         String cogwheelText;
@@ -65,23 +61,19 @@ public class HarvesterOverlayListener {
         long currentTime = System.currentTimeMillis();
 
         if (showShutdown) {
-            // Shutdown state - all dark gray
             cogwheelText = "§8§l⚙";
             timerText = "§8 30s";
             warningText = "§8 ⚠";
         } else if (interrupted) {
-            // Interrupted state - solid red cogwheel
             cogwheelText = "§c§l⚙";
             timerText = "§8 0s";
 
-            // Flash warning colors
             if (currentTime - lastWarningChange >= 250) {
                 warningColorIndex = (warningColorIndex + 1) % WARNING_COLORS.length;
                 lastWarningChange = currentTime;
             }
             warningText = WARNING_COLORS[warningColorIndex];
         } else {
-            // Normal operation
             if (currentTime - lastColorChange >= 250) {
                 colorIndex = (colorIndex + 1) % COGWHEEL_COLORS.length;
                 lastColorChange = currentTime;
@@ -108,12 +100,10 @@ public class HarvesterOverlayListener {
             warningText = isPaused ? "§9§l ┃┃" : "§a ✔";
         }
 
-        // Draw cogwheel box
         Gui.drawRect(baseX - padding, baseY - padding,
                 baseX + boxSize + padding, baseY + boxSize + padding,
                 0x80000000);
 
-        // Draw scaled cogwheel
         GlStateManager.pushMatrix();
         GlStateManager.translate(baseX + boxSize/2, baseY + boxSize/2, 0);
         GlStateManager.scale(2.0F, 2.0F, 1.0F);
@@ -123,7 +113,6 @@ public class HarvesterOverlayListener {
                 0xFFFFFF);
         GlStateManager.popMatrix();
 
-        // Combined box for timer and warning
         int textX = baseX + boxSize + padding;
         int textY = baseY;
         int textHeight = mc.fontRendererObj.FONT_HEIGHT;
