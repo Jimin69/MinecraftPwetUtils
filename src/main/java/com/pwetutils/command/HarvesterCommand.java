@@ -16,6 +16,7 @@ public class HarvesterCommand extends Command {
     private static Thread harvesterThread;
     private static Thread soundThread;
     private static Thread interruptedCheckThread;
+    private static Thread retreatThread;
     private static final AtomicBoolean isPaused = new AtomicBoolean(false);
     private static final AtomicInteger phase = new AtomicInteger(0);
     private static final AtomicInteger tickCounter = new AtomicInteger(0);
@@ -23,6 +24,9 @@ public class HarvesterCommand extends Command {
     private static final AtomicBoolean goLeftFirst = new AtomicBoolean(true);
     private static final AtomicBoolean shouldRepeat = new AtomicBoolean(false);
     private static float lastHealth = -1;
+
+    private static Boolean previousDirection1 = null;
+    private static Boolean previousDirection2 = null;
 
     private static int leftMoveTicks = 5;
     private static int pauseTicks = 2;
@@ -82,8 +86,54 @@ public class HarvesterCommand extends Command {
         if (mc.thePlayer != null) {
             mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Harvester §cdisabled §7(interrupted by foreign activity)"));
         }
+        startRetreatSequence();
         startSoundLoop();
         startInterruptedCheck();
+    }
+
+    private static void startRetreatSequence() {
+        if (retreatThread != null) {
+            retreatThread.interrupt();
+        }
+        retreatThread = new Thread(() -> {
+            Minecraft mc = Minecraft.getMinecraft();
+            if (mc.gameSettings == null || mc.thePlayer == null) return;
+
+            int backKey = mc.gameSettings.keyBindBack.getKeyCode();
+            int leftKey = mc.gameSettings.keyBindLeft.getKeyCode();
+            int rightKey = mc.gameSettings.keyBindRight.getKeyCode();
+
+            Minecraft.getMinecraft().addScheduledTask(() -> {
+                KeyBinding.setKeyBindState(leftKey, false);
+                KeyBinding.setKeyBindState(rightKey, false);
+                KeyBinding.setKeyBindState(backKey, true);
+            });
+
+            try {
+                Thread.sleep(1000);
+
+                Minecraft.getMinecraft().addScheduledTask(() -> {
+                    if (mc.thePlayer != null) {
+                        boolean canSwitch = mc.currentScreen == null ||
+                                mc.currentScreen.getClass().getName().contains("com.moonsworth.lunar");
+                        if (canSwitch) {
+                            mc.thePlayer.inventory.currentItem = 0;
+                        }
+                    }
+                });
+
+                Thread.sleep(1000);
+
+                Minecraft.getMinecraft().addScheduledTask(() -> {
+                    KeyBinding.setKeyBindState(backKey, false);
+                });
+            } catch (InterruptedException e) {
+                Minecraft.getMinecraft().addScheduledTask(() -> {
+                    KeyBinding.setKeyBindState(backKey, false);
+                });
+            }
+        });
+        retreatThread.start();
     }
 
     private static void startInterruptedCheck() {
@@ -120,6 +170,9 @@ public class HarvesterCommand extends Command {
         stopHarvester();
         if (interruptedCheckThread != null) {
             interruptedCheckThread.interrupt();
+        }
+        if (retreatThread != null) {
+            retreatThread.interrupt();
         }
     }
 
@@ -176,6 +229,19 @@ public class HarvesterCommand extends Command {
         }
     }
 
+    private static boolean chooseDirection() {
+        if (previousDirection1 != null && previousDirection2 != null &&
+                previousDirection1.equals(previousDirection2)) {
+            return !previousDirection1;
+        }
+        return ThreadLocalRandom.current().nextBoolean();
+    }
+
+    private static void updateDirectionHistory(boolean direction) {
+        previousDirection2 = previousDirection1;
+        previousDirection1 = direction;
+    }
+
     @Override
     public void handle(String[] args) {
         Minecraft mc = Minecraft.getMinecraft();
@@ -221,6 +287,11 @@ public class HarvesterCommand extends Command {
                 if (interruptedCheckThread != null) {
                     interruptedCheckThread.interrupt();
                 }
+                if (retreatThread != null) {
+                    retreatThread.interrupt();
+                }
+                previousDirection1 = null;
+                previousDirection2 = null;
                 startHarvester();
                 mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Harvester §aenabled"));
             }
@@ -236,6 +307,9 @@ public class HarvesterCommand extends Command {
                 stopSoundLoop();
                 if (interruptedCheckThread != null) {
                     interruptedCheckThread.interrupt();
+                }
+                if (retreatThread != null) {
+                    retreatThread.interrupt();
                 }
                 stopHarvester();
                 HarvesterOverlayListener.triggerShutdown();
@@ -260,7 +334,9 @@ public class HarvesterCommand extends Command {
         tickCounter.set(0);
         isPaused.set(false);
         waitTicks.set(ThreadLocalRandom.current().nextInt(520, 581));
-        goLeftFirst.set(ThreadLocalRandom.current().nextBoolean());
+        boolean initialDirection = chooseDirection();
+        goLeftFirst.set(initialDirection);
+        updateDirectionHistory(initialDirection);
         shouldRepeat.set(false);
         lastHealth = -1;
 
@@ -299,7 +375,9 @@ public class HarvesterCommand extends Command {
                                 phase.set(0);
                                 tickCounter.set(0);
                                 waitTicks.set(ThreadLocalRandom.current().nextInt(520, 581));
-                                goLeftFirst.set(ThreadLocalRandom.current().nextBoolean());
+                                boolean newDirection = chooseDirection();
+                                goLeftFirst.set(newDirection);
+                                updateDirectionHistory(newDirection);
                                 shouldRepeat.set(ThreadLocalRandom.current().nextBoolean());
                             }
                         } else if (!shouldWork && !isPaused.get()) {
@@ -363,7 +441,9 @@ public class HarvesterCommand extends Command {
                                 phase.set(0);
                                 tickCounter.set(0);
                                 waitTicks.set(ThreadLocalRandom.current().nextInt(520, 581));
-                                goLeftFirst.set(ThreadLocalRandom.current().nextBoolean());
+                                boolean newDirection = chooseDirection();
+                                goLeftFirst.set(newDirection);
+                                updateDirectionHistory(newDirection);
                                 shouldRepeat.set(ThreadLocalRandom.current().nextBoolean());
                             }
                         } else if (currentPhase == 4) {
