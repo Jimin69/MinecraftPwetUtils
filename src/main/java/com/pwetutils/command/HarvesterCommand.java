@@ -187,10 +187,9 @@ public class HarvesterCommand extends Command {
 
         if (args[0].equalsIgnoreCase("sound")) {
             if (args.length == 1) {
-                // No value provided, show current and play preview
                 mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Current anvil sound volume: §e" + anvilSoundVolume));
                 playPreviewSound();
-            } else {
+            } else if (args.length == 2) {
                 try {
                     float newVolume = Float.parseFloat(args[1]);
                     if (newVolume < 0 || newVolume > 1) {
@@ -203,11 +202,17 @@ public class HarvesterCommand extends Command {
                 } catch (NumberFormatException e) {
                     mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] §cInvalid number format"));
                 }
+            } else {
+                mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] §7Unknown argument. Use §e/harvester <on|off|sound>"));
             }
             return;
         }
 
         if (args[0].equalsIgnoreCase("on")) {
+            if (args.length > 1) {
+                mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] §7Unknown argument. Use §e/harvester <on|off|sound>"));
+                return;
+            }
             if (!harvesterActive || interrupted) {
                 harvesterActive = true;
                 interrupted = false;
@@ -220,6 +225,10 @@ public class HarvesterCommand extends Command {
                 mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Harvester §aenabled"));
             }
         } else if (args[0].equalsIgnoreCase("off")) {
+            if (args.length > 1) {
+                mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] §7Unknown argument. Use §e/harvester <on|off|sound>"));
+                return;
+            }
             if (harvesterActive || interrupted) {
                 harvesterActive = false;
                 interrupted = false;
@@ -232,17 +241,17 @@ public class HarvesterCommand extends Command {
                 HarvesterOverlayListener.triggerShutdown();
                 mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Harvester §cdisabled"));
             }
+        } else {
+            mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] §7Unknown argument. Use §e/harvester <on|off|sound>"));
         }
     }
 
     private boolean shouldPause(Minecraft mc) {
         if (mc.currentScreen == null) return false;
-
         String className = mc.currentScreen.getClass().getName();
         if (className.contains("com.moonsworth.lunar")) {
             return false;
         }
-
         return true;
     }
 
@@ -274,7 +283,6 @@ public class HarvesterCommand extends Command {
                             return;
                         }
 
-                        // Check for health decrease
                         float currentHealth = mc.thePlayer.getHealth();
                         if (lastHealth > 0 && currentHealth < lastHealth) {
                             interruptByDamage();
@@ -319,7 +327,6 @@ public class HarvesterCommand extends Command {
                         int currentTick = tickCounter.get();
 
                         if (currentPhase == 0) {
-                            // first movement
                             KeyBinding.setKeyBindState(leftKey, leftFirst);
                             KeyBinding.setKeyBindState(rightKey, !leftFirst);
                             if (currentTick >= (leftFirst ? leftMoveTicks : rightMoveTicks)) {
@@ -329,7 +336,6 @@ public class HarvesterCommand extends Command {
                                 KeyBinding.setKeyBindState(rightKey, true);
                             }
                         } else if (currentPhase == 1) {
-                            // pause with both keys
                             KeyBinding.setKeyBindState(leftKey, true);
                             KeyBinding.setKeyBindState(rightKey, true);
                             if (currentTick >= pauseTicks) {
@@ -337,12 +343,11 @@ public class HarvesterCommand extends Command {
                                 tickCounter.set(0);
                             }
                         } else if (currentPhase == 2) {
-                            // opposite movement
                             KeyBinding.setKeyBindState(leftKey, !leftFirst);
                             KeyBinding.setKeyBindState(rightKey, leftFirst);
                             if (currentTick >= (leftFirst ? rightMoveTicks : leftMoveTicks)) {
                                 if (shouldRepeat.get()) {
-                                    phase.set(4); // 0.75 seconds = 15 ticks
+                                    phase.set(4);
                                     shouldRepeat.set(false);
                                 } else {
                                     phase.set(3);
@@ -352,7 +357,6 @@ public class HarvesterCommand extends Command {
                                 KeyBinding.setKeyBindState(rightKey, true);
                             }
                         } else if (currentPhase == 3) {
-                            // normal wait period
                             KeyBinding.setKeyBindState(leftKey, true);
                             KeyBinding.setKeyBindState(rightKey, true);
                             if (currentTick >= waitTicks.get()) {
@@ -363,11 +367,10 @@ public class HarvesterCommand extends Command {
                                 shouldRepeat.set(ThreadLocalRandom.current().nextBoolean());
                             }
                         } else if (currentPhase == 4) {
-                            // short wait before repeat, 0.75 seconds = 15 ticks
                             KeyBinding.setKeyBindState(leftKey, true);
                             KeyBinding.setKeyBindState(rightKey, true);
                             if (currentTick >= 15) {
-                                phase.set(0); // repeat the pattern
+                                phase.set(0);
                                 tickCounter.set(0);
                             }
                         }

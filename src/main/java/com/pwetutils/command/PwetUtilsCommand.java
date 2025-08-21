@@ -36,6 +36,12 @@ public class PwetUtilsCommand extends Command {
         }
 
         if (args[0].equalsIgnoreCase("help")) {
+            if (args.length > 1) {
+                mc.thePlayer.addChatMessage(
+                        new ChatComponentText("§7[§6PwetUtils§7] §7Unknown argument. Use §e/pwetutils help §7for command list.")
+                );
+                return;
+            }
             mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] §6§m----------------------------------------------"));
             mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] §7/pwetutils §eDisplays mod info and version"));
             mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] §7/pwetutils help §eDisplays this list of commands"));
@@ -50,6 +56,7 @@ public class PwetUtilsCommand extends Command {
             sendModuleHelpMessage(mc, "increaseChatLength");
             sendModuleHelpMessage(mc, "languageInputSwitch");
 
+            mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] §7/harvester <on|off|sound> §eControl auto-harvester"));
             mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] §7/rq§8|§7/requeue §eJoin the last BedWars mode you played."));
             mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] §7/b4s§8|§7/b4§8|§7/b3s§8|§7/b2s§8|§7/b1s §eJoin BedWars mode"));
             mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] §6§m----------------------------------------------"));
@@ -60,6 +67,12 @@ public class PwetUtilsCommand extends Command {
             if (args.length < 2) {
                 mc.thePlayer.addChatMessage(
                         new ChatComponentText("§7[§6PwetUtils§7] §7Usage: /pwetutils emotes <enable|disable>")
+                );
+                return;
+            }
+            if (args.length > 2) {
+                mc.thePlayer.addChatMessage(
+                        new ChatComponentText("§7[§6PwetUtils§7] §7Unknown argument. Use §e/pwetutils help §7for command list.")
                 );
                 return;
             }
@@ -89,6 +102,12 @@ public class PwetUtilsCommand extends Command {
                 );
                 return;
             }
+            if (args.length > 2) {
+                mc.thePlayer.addChatMessage(
+                        new ChatComponentText("§7[§6PwetUtils§7] §7Unknown argument. Use §e/pwetutils help §7for command list.")
+                );
+                return;
+            }
 
             if (args[1].equalsIgnoreCase("enable")) {
                 ModuleSettings.setResourceTimerEnabled(true);
@@ -112,6 +131,12 @@ public class PwetUtilsCommand extends Command {
             if (args.length < 2) {
                 mc.thePlayer.addChatMessage(
                         new ChatComponentText("§7[§6PwetUtils§7] §7Usage: /pwetutils bedwarsExperienceCounter <enable|disable>")
+                );
+                return;
+            }
+            if (args.length > 2) {
+                mc.thePlayer.addChatMessage(
+                        new ChatComponentText("§7[§6PwetUtils§7] §7Unknown argument. Use §e/pwetutils help §7for command list.")
                 );
                 return;
             }
@@ -143,11 +168,23 @@ public class PwetUtilsCommand extends Command {
             }
 
             if (args[1].equalsIgnoreCase("enable")) {
+                if (args.length > 2) {
+                    mc.thePlayer.addChatMessage(
+                            new ChatComponentText("§7[§6PwetUtils§7] §7Unknown argument. Use §e/pwetutils help §7for command list.")
+                    );
+                    return;
+                }
                 ModuleSettings.setSessionCounterEnabled(true);
                 mc.thePlayer.addChatMessage(
                         new ChatComponentText("§7[§6PwetUtils§7] §7Bedwars session counter has been §aenabled")
                 );
             } else if (args[1].equalsIgnoreCase("disable")) {
+                if (args.length > 2) {
+                    mc.thePlayer.addChatMessage(
+                            new ChatComponentText("§7[§6PwetUtils§7] §7Unknown argument. Use §e/pwetutils help §7for command list.")
+                    );
+                    return;
+                }
                 ModuleSettings.setSessionCounterEnabled(false);
                 mc.thePlayer.addChatMessage(
                         new ChatComponentText("§7[§6PwetUtils§7] §7Bedwars session counter has been §cdisabled")
@@ -156,6 +193,12 @@ public class PwetUtilsCommand extends Command {
                 if (args.length < 4) {
                     mc.thePlayer.addChatMessage(
                             new ChatComponentText("§7[§6PwetUtils§7] §7Usage: /pwetutils bedwarsSessionCounter add <exp> <minutes>")
+                    );
+                    return;
+                }
+                if (args.length > 4) {
+                    mc.thePlayer.addChatMessage(
+                            new ChatComponentText("§7[§6PwetUtils§7] §7Unknown argument. Use §e/pwetutils help §7for command list.")
                     );
                     return;
                 }
@@ -195,6 +238,12 @@ public class PwetUtilsCommand extends Command {
                 );
                 return;
             }
+            if (args.length > 2) {
+                mc.thePlayer.addChatMessage(
+                        new ChatComponentText("§7[§6PwetUtils§7] §7Unknown argument. Use §e/pwetutils help §7for command list.")
+                );
+                return;
+            }
 
             if (args[1].equalsIgnoreCase("enable")) {
                 ModuleSettings.setNameMentionEnabled(true);
@@ -218,6 +267,12 @@ public class PwetUtilsCommand extends Command {
             if (args.length < 2) {
                 mc.thePlayer.addChatMessage(
                         new ChatComponentText("§7[§6PwetUtils§7] §7Usage: /pwetutils bedwarsChatWarnings <enable|disable>")
+                );
+                return;
+            }
+            if (args.length > 2) {
+                mc.thePlayer.addChatMessage(
+                        new ChatComponentText("§7[§6PwetUtils§7] §7Unknown argument. Use §e/pwetutils help §7for command list.")
                 );
                 return;
             }
@@ -247,6 +302,12 @@ public class PwetUtilsCommand extends Command {
                 );
                 return;
             }
+            if (args.length > 2) {
+                mc.thePlayer.addChatMessage(
+                        new ChatComponentText("§7[§6PwetUtils§7] §7Unknown argument. Use §e/pwetutils help §7for command list.")
+                );
+                return;
+            }
 
             if (args[1].equalsIgnoreCase("enable")) {
                 ModuleSettings.setLanguageInputEnabled(true);
@@ -273,6 +334,12 @@ public class PwetUtilsCommand extends Command {
                 );
                 return;
             }
+            if (args.length > 2) {
+                mc.thePlayer.addChatMessage(
+                        new ChatComponentText("§7[§6PwetUtils§7] §7Unknown argument. Use §e/pwetutils help §7for command list.")
+                );
+                return;
+            }
 
             if (args[1].equalsIgnoreCase("enable")) {
                 ModuleSettings.setIncreaseChatLengthEnabled(true);
@@ -296,6 +363,12 @@ public class PwetUtilsCommand extends Command {
             if (args.length < 2) {
                 mc.thePlayer.addChatMessage(
                         new ChatComponentText("§7[§6PwetUtils§7] §7Usage: /pwetutils hypixelAutoFriendKR <enable|disable>")
+                );
+                return;
+            }
+            if (args.length > 2) {
+                mc.thePlayer.addChatMessage(
+                        new ChatComponentText("§7[§6PwetUtils§7] §7Unknown argument. Use §e/pwetutils help §7for command list.")
                 );
                 return;
             }
