@@ -15,6 +15,7 @@
     "ChatRenderMixin",
     "AutoFriendMixin",
     "EntityPlayerSPMixin",
-    "HarvesterDetectorMixin"
+    "HarvesterDetectorMixin",
+    "WorldRenderMixin"
   ]
 }
