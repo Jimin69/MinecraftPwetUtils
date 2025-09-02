@@ -31,6 +31,10 @@ public class EntityPlayerSPMixin {
             }
         }
 
-        return new C01PacketChatMessage(message);
+        String processedMessage = message;
+        if (ModuleSettings.isEmoteConverterEnabled() && ModuleSettings.isIncreaseChatLengthEnabled()) {
+            processedMessage = EmoteHandler.processEmotes(message);
+        }
+        return new C01PacketChatMessage(processedMessage);
     }
 }
