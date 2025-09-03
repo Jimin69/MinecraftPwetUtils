@@ -18,6 +18,11 @@ import java.util.concurrent.CompletableFuture;
 
 public class HologramImageListener {
     private static final List<Hologram> holograms = new ArrayList<>();
+    private static final List<VideoHologram> videoHolograms = new ArrayList<>();
+
+    public void loadVideo(double x, double y, double z) {
+        videoHolograms.add(new VideoHologram(x, y, z));
+    }
 
     public void loadImage(String url, double x, double y, double z) {
         CompletableFuture.runAsync(() -> {
@@ -29,7 +34,8 @@ public class HologramImageListener {
 
                 Minecraft.getMinecraft().addScheduledTask(() -> {
                     DynamicTexture texture = new DynamicTexture(image);
-                    ResourceLocation textureLocation = Minecraft.getMinecraft().getTextureManager().getDynamicTextureLocation("hologram_" + System.currentTimeMillis(), texture);
+                    ResourceLocation textureLocation = Minecraft.getMinecraft().getTextureManager()
+                            .getDynamicTextureLocation("hologram_" + System.currentTimeMillis(), texture);
                     holograms.add(new Hologram(textureLocation, x, y, z, imageWidth, imageHeight));
                 });
             } catch (Exception e) {
@@ -49,6 +55,54 @@ public class HologramImageListener {
         for (Hologram hologram : holograms) {
             renderSingleHologram(hologram, playerX, playerY, playerZ);
         }
+
+        for (VideoHologram video : videoHolograms) {
+            ResourceLocation texture = video.getCurrentTexture();
+            if (texture != null) {
+                renderVideoHologram(video, texture, playerX, playerY, playerZ);
+            }
+        }
+    }
+
+    private static void renderVideoHologram(VideoHologram video, ResourceLocation texture,
+                                            double playerX, double playerY, double playerZ) {
+        Minecraft mc = Minecraft.getMinecraft();
+
+        double renderX = video.getX() - playerX;
+        double renderY = video.getY() - playerY;
+        double renderZ = video.getZ() - playerZ;
+
+        GlStateManager.pushMatrix();
+        GlStateManager.translate(renderX, renderY, renderZ);
+        GlStateManager.rotate(-mc.getRenderManager().playerViewY, 0.0F, 1.0F, 0.0F);
+        GlStateManager.rotate(mc.getRenderManager().playerViewX, 1.0F, 0.0F, 0.0F);
+
+        GlStateManager.disableLighting();
+        GlStateManager.enableBlend();
+        GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0);
+        GlStateManager.enableTexture2D();
+        GlStateManager.color(1.0F, 1.0F, 1.0F, 0.9F);
+        GlStateManager.depthMask(false);
+
+        mc.getTextureManager().bindTexture(texture);
+
+        Tessellator tessellator = Tessellator.getInstance();
+        WorldRenderer worldrenderer = tessellator.getWorldRenderer();
+
+        float halfWidth = video.getWidth() / 2.0f;
+        float halfHeight = video.getHeight() / 2.0f;
+
+        worldrenderer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX);
+        worldrenderer.pos(-halfWidth, halfHeight, 0).tex(1, 0).endVertex();
+        worldrenderer.pos(halfWidth, halfHeight, 0).tex(0, 0).endVertex();
+        worldrenderer.pos(halfWidth, -halfHeight, 0).tex(0, 1).endVertex();
+        worldrenderer.pos(-halfWidth, -halfHeight, 0).tex(1, 1).endVertex();
+        tessellator.draw();
+
+        GlStateManager.depthMask(true);
+        GlStateManager.disableBlend();
+        GlStateManager.enableLighting();
+        GlStateManager.popMatrix();
     }
 
     private static void renderSingleHologram(Hologram hologram, double playerX, double playerY, double playerZ) {
@@ -60,7 +114,6 @@ public class HologramImageListener {
 
         GlStateManager.pushMatrix();
         GlStateManager.translate(renderX, renderY, renderZ);
-
         GlStateManager.rotate(-mc.getRenderManager().playerViewY, 0.0F, 1.0F, 0.0F);
         GlStateManager.rotate(mc.getRenderManager().playerViewX, 1.0F, 0.0F, 0.0F);
 
@@ -94,6 +147,8 @@ public class HologramImageListener {
 
     public void clearHolograms() {
         holograms.clear();
+        videoHolograms.forEach(VideoHologram::cleanup);
+        videoHolograms.clear();
     }
 
     private static class Hologram {

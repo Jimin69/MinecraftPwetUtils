@@ -21,7 +21,18 @@ public class HologramCommand extends Command {
         Minecraft mc = Minecraft.getMinecraft();
 
         if (args.length == 0) {
-            mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Usage: /hologram <url> or /hologram clear"));
+            mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Usage: /hologram <video|clear|url>"));
+            return;
+        }
+
+        if (args[0].equalsIgnoreCase("video")) {
+            if (hologramListener != null && mc.thePlayer != null) {
+                double x = mc.thePlayer.posX;
+                double y = mc.thePlayer.posY + 2.0;
+                double z = mc.thePlayer.posZ;
+                hologramListener.loadVideo(x, y, z);
+                mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Creating video hologram..."));
+            }
             return;
         }
 
@@ -33,15 +44,13 @@ public class HologramCommand extends Command {
             return;
         }
 
-        if (args.length == 1) {
-            String url = args[0];
-            if (hologramListener != null && mc.thePlayer != null) {
-                double x = mc.thePlayer.posX;
-                double y = mc.thePlayer.posY + 1.5;
-                double z = mc.thePlayer.posZ;
-                hologramListener.loadImage(url, x, y, z);
-                mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Creating hologram at your location..."));
-            }
+        String url = args[0];
+        if (hologramListener != null && mc.thePlayer != null) {
+            double x = mc.thePlayer.posX;
+            double y = mc.thePlayer.posY + 1.5;
+            double z = mc.thePlayer.posZ;
+            hologramListener.loadImage(url, x, y, z);
+            mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Creating image hologram..."));
         }
     }
 }
