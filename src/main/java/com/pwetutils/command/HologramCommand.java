@@ -27,6 +27,12 @@ public class HologramCommand extends Command {
 
         if (args[0].equalsIgnoreCase("video")) {
             if (args.length >= 2) {
+                if (args[1].equalsIgnoreCase("help")) {
+                    mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Usage: §e/hologram video §7<size> <transparency:true/false>"));
+                    mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Or: §e/hologram video §7<pause/resume/delete>"));
+                    return;
+                }
+
                 if (args[1].equalsIgnoreCase("delete")) {
                     if (hologramListener != null) {
                         hologramListener.clearVideoHologram();
@@ -54,7 +60,7 @@ public class HologramCommand extends Command {
                 }
             }
 
-            int size = 3;
+            int size = 4;
             boolean transparent = false;
 
             if (args.length >= 2) {
