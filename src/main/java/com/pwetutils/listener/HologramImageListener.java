@@ -18,10 +18,18 @@ import java.util.concurrent.CompletableFuture;
 
 public class HologramImageListener {
     private static final List<Hologram> holograms = new ArrayList<>();
-    private static final List<VideoHologram> videoHolograms = new ArrayList<>();
+    private static VideoHologram currentVideoHologram = null;
 
-    public void loadVideo(double x, double y, double z) {
-        videoHolograms.add(new VideoHologram(x, y, z));
+    public void loadVideo(double x, double y, double z, int size) {
+        clearVideoHologram();
+        currentVideoHologram = new VideoHologram(x, y, z, size);
+    }
+
+    public void clearVideoHologram() {
+        if (currentVideoHologram != null) {
+            currentVideoHologram.cleanup();
+            currentVideoHologram = null;
+        }
     }
 
     public void loadImage(String url, double x, double y, double z) {
@@ -56,10 +64,10 @@ public class HologramImageListener {
             renderSingleHologram(hologram, playerX, playerY, playerZ);
         }
 
-        for (VideoHologram video : videoHolograms) {
-            ResourceLocation texture = video.getCurrentTexture();
+        if (currentVideoHologram != null) {
+            ResourceLocation texture = currentVideoHologram.getCurrentTexture();
             if (texture != null) {
-                renderVideoHologram(video, texture, playerX, playerY, playerZ);
+                renderVideoHologram(currentVideoHologram, texture, playerX, playerY, playerZ);
             }
         }
     }
@@ -147,8 +155,7 @@ public class HologramImageListener {
 
     public void clearHolograms() {
         holograms.clear();
-        videoHolograms.forEach(VideoHologram::cleanup);
-        videoHolograms.clear();
+        clearVideoHologram();
     }
 
     private static class Hologram {

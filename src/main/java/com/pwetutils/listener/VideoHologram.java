@@ -53,12 +53,13 @@ public class VideoHologram {
     }
     private VideoState state = VideoState.WAITING;
 
-    public VideoHologram(double x, double y, double z) {
+    public VideoHologram(double x, double y, double z, int sizeLevel) {
         this.x = x;
         this.y = y;
         this.z = z;
-        this.width = 5.5f;
-        this.height = 3.3f;
+        float baseSize = 1.833f * sizeLevel;
+        this.width = baseSize;
+        this.height = baseSize * 0.6f;
         this.creationTime = System.currentTimeMillis();
         loadScreens();
         loadMetadata();

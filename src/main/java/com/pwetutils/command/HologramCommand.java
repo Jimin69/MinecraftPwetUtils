@@ -26,12 +26,34 @@ public class HologramCommand extends Command {
         }
 
         if (args[0].equalsIgnoreCase("video")) {
+            if (args.length >= 2 && args[1].equalsIgnoreCase("delete")) {
+                if (hologramListener != null) {
+                    hologramListener.clearVideoHologram();
+                    mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Deleted video hologram"));
+                }
+                return;
+            }
+
+            int size = 3;
+            if (args.length >= 2) {
+                try {
+                    size = Integer.parseInt(args[1]);
+                    if (size < 2 || size > 5) {
+                        mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Size must be between 2 and 5"));
+                        return;
+                    }
+                } catch (NumberFormatException e) {
+                    mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Invalid size. Usage: /hologram video [2-5]"));
+                    return;
+                }
+            }
+
             if (hologramListener != null && mc.thePlayer != null) {
                 double x = mc.thePlayer.posX;
                 double y = mc.thePlayer.posY + 2.0;
                 double z = mc.thePlayer.posZ;
-                hologramListener.loadVideo(x, y, z);
-                mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Creating video hologram..."));
+                hologramListener.loadVideo(x, y, z, size);
+                mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Creating video hologram (size " + size + ")..."));
             }
             return;
         }
