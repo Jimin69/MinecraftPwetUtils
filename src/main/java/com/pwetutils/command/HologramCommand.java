@@ -29,7 +29,7 @@ public class HologramCommand extends Command {
             if (args.length >= 2) {
                 if (args[1].equalsIgnoreCase("help")) {
                     mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Usage: §e/hologram video §7<size> <transparency:true/false>"));
-                    mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Or: §e/hologram video §7<pause/resume/delete>"));
+                    mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Or: §e/hologram video §7<pause|restart|delete>"));
                     return;
                 }
 
@@ -42,19 +42,25 @@ public class HologramCommand extends Command {
                 }
 
                 if (args[1].equalsIgnoreCase("pause")) {
-                    if (hologramListener != null && hologramListener.pauseVideo()) {
-                        mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Video paused"));
+                    if (hologramListener != null && hologramListener.hasVideoHologram()) {
+                        boolean paused = hologramListener.togglePauseVideo();
+                        if (paused) {
+                            mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Video paused"));
+                        } else {
+                            mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Video resumed"));
+                        }
                     } else {
                         mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] No video hologram to pause"));
                     }
                     return;
                 }
 
-                if (args[1].equalsIgnoreCase("resume")) {
-                    if (hologramListener != null && hologramListener.resumeVideo()) {
-                        mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Video resumed"));
+                if (args[1].equalsIgnoreCase("restart")) {
+                    if (hologramListener != null && hologramListener.hasVideoHologram()) {
+                        hologramListener.restartVideo();
+                        mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Video restarted"));
                     } else {
-                        mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] No video hologram to resume"));
+                        mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] No video hologram to restart"));
                     }
                     return;
                 }

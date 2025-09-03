@@ -25,20 +25,33 @@ public class HologramImageListener {
         currentVideoHologram = new VideoHologram(x, y, z, size, transparent);
     }
 
-    public boolean pauseVideo() {
+    public boolean togglePauseVideo() {
         if (currentVideoHologram != null) {
-            currentVideoHologram.pause();
-            return true;
+            if (currentVideoHologram.isPaused()) {
+                currentVideoHologram.resume();
+                return false;
+            } else {
+                currentVideoHologram.pause();
+                return true;
+            }
         }
         return false;
     }
 
-    public boolean resumeVideo() {
+    public boolean hasVideoHologram() {
+        return currentVideoHologram != null;
+    }
+
+    public void restartVideo() {
         if (currentVideoHologram != null) {
-            currentVideoHologram.resume();
-            return true;
+            double x = currentVideoHologram.getX();
+            double y = currentVideoHologram.getY();
+            double z = currentVideoHologram.getZ();
+            int size = currentVideoHologram.getSizeLevel();
+            boolean transparent = currentVideoHologram.isTransparent();
+            clearVideoHologram();
+            currentVideoHologram = new VideoHologram(x, y, z, size, transparent);
         }
-        return false;
     }
 
     public void clearVideoHologram() {

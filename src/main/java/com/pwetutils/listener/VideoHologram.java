@@ -19,6 +19,7 @@ public class VideoHologram {
 
     private final double x, y, z;
     private final float width, height;
+    private final int sizeLevel;
     private final Map<Integer, FrameData> frameCache = new HashMap<>();
     private final Map<Integer, CompletableFuture<Void>> loadingFrames = new HashMap<>();
     private DynamicTexture startScreenTexture = null;
@@ -59,6 +60,7 @@ public class VideoHologram {
         this.x = x;
         this.y = y;
         this.z = z;
+        this.sizeLevel = sizeLevel;
         float baseSize = 1.833f * sizeLevel;
         this.width = baseSize;
         this.height = baseSize * 0.6f;
@@ -76,8 +78,16 @@ public class VideoHologram {
         paused = false;
     }
 
+    public boolean isPaused() {
+        return paused;
+    }
+
     public boolean isTransparent() {
         return transparent;
+    }
+
+    public int getSizeLevel() {
+        return sizeLevel;
     }
 
     private void loadScreens() {
