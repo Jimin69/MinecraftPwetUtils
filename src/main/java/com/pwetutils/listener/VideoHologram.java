@@ -33,6 +33,8 @@ public class VideoHologram {
     private int frameDelay = 100;
     private boolean metadataLoaded = false;
     private long creationTime;
+    private boolean paused = false;
+    private final boolean transparent;
 
     private static class FrameData {
         final DynamicTexture texture;
@@ -53,16 +55,29 @@ public class VideoHologram {
     }
     private VideoState state = VideoState.WAITING;
 
-    public VideoHologram(double x, double y, double z, int sizeLevel) {
+    public VideoHologram(double x, double y, double z, int sizeLevel, boolean transparent) {
         this.x = x;
         this.y = y;
         this.z = z;
         float baseSize = 1.833f * sizeLevel;
         this.width = baseSize;
         this.height = baseSize * 0.6f;
+        this.transparent = transparent;
         this.creationTime = System.currentTimeMillis();
         loadScreens();
         loadMetadata();
+    }
+
+    public void pause() {
+        paused = true;
+    }
+
+    public void resume() {
+        paused = false;
+    }
+
+    public boolean isTransparent() {
+        return transparent;
     }
 
     private void loadScreens() {
@@ -229,7 +244,7 @@ public class VideoHologram {
                 return startScreenLocation;
 
             case PLAYING:
-                if (now - lastFrameTime >= frameDelay) {
+                if (!paused && now - lastFrameTime >= frameDelay) {
                     int framesToAdvance = (int)((now - lastFrameTime) / frameDelay);
                     currentFrame = Math.min(currentFrame + framesToAdvance, totalFrames);
                     lastFrameTime = now;
@@ -243,6 +258,8 @@ public class VideoHologram {
                         }
                         cleanupFrames(currentFrame);
                     }
+                } else if (paused) {
+                    lastFrameTime = now;
                 }
 
                 for (int i = currentFrame; i >= Math.max(1, currentFrame - FRAMES_BEHIND); i--) {

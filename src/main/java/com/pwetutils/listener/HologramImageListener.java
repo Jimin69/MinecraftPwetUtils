@@ -20,9 +20,25 @@ public class HologramImageListener {
     private static final List<Hologram> holograms = new ArrayList<>();
     private static VideoHologram currentVideoHologram = null;
 
-    public void loadVideo(double x, double y, double z, int size) {
+    public void loadVideo(double x, double y, double z, int size, boolean transparent) {
         clearVideoHologram();
-        currentVideoHologram = new VideoHologram(x, y, z, size);
+        currentVideoHologram = new VideoHologram(x, y, z, size, transparent);
+    }
+
+    public boolean pauseVideo() {
+        if (currentVideoHologram != null) {
+            currentVideoHologram.pause();
+            return true;
+        }
+        return false;
+    }
+
+    public boolean resumeVideo() {
+        if (currentVideoHologram != null) {
+            currentVideoHologram.resume();
+            return true;
+        }
+        return false;
     }
 
     public void clearVideoHologram() {
@@ -89,7 +105,8 @@ public class HologramImageListener {
         GlStateManager.enableBlend();
         GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0);
         GlStateManager.enableTexture2D();
-        GlStateManager.color(1.0F, 1.0F, 1.0F, 0.9F);
+        float alpha = video.isTransparent() ? 0.9F : 1.0F;
+        GlStateManager.color(1.0F, 1.0F, 1.0F, alpha);
         GlStateManager.depthMask(false);
 
         mc.getTextureManager().bindTexture(texture);

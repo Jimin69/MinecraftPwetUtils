@@ -9,7 +9,7 @@ public class HologramCommand extends Command {
     private static HologramImageListener hologramListener;
 
     public HologramCommand() {
-        super("hologram", "holo");
+        super("hologram", "holo", "hg");
     }
 
     public static void setHologramListener(HologramImageListener listener) {
@@ -26,15 +26,37 @@ public class HologramCommand extends Command {
         }
 
         if (args[0].equalsIgnoreCase("video")) {
-            if (args.length >= 2 && args[1].equalsIgnoreCase("delete")) {
-                if (hologramListener != null) {
-                    hologramListener.clearVideoHologram();
-                    mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Deleted video hologram"));
+            if (args.length >= 2) {
+                if (args[1].equalsIgnoreCase("delete")) {
+                    if (hologramListener != null) {
+                        hologramListener.clearVideoHologram();
+                        mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Deleted video hologram"));
+                    }
+                    return;
                 }
-                return;
+
+                if (args[1].equalsIgnoreCase("pause")) {
+                    if (hologramListener != null && hologramListener.pauseVideo()) {
+                        mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Video paused"));
+                    } else {
+                        mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] No video hologram to pause"));
+                    }
+                    return;
+                }
+
+                if (args[1].equalsIgnoreCase("resume")) {
+                    if (hologramListener != null && hologramListener.resumeVideo()) {
+                        mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Video resumed"));
+                    } else {
+                        mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] No video hologram to resume"));
+                    }
+                    return;
+                }
             }
 
             int size = 3;
+            boolean transparent = false;
+
             if (args.length >= 2) {
                 try {
                     size = Integer.parseInt(args[1]);
@@ -43,7 +65,16 @@ public class HologramCommand extends Command {
                         return;
                     }
                 } catch (NumberFormatException e) {
-                    mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Invalid size. Usage: /hologram video [2-6]"));
+                    mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Invalid size. Usage: /hologram video [2-6] [true/false]"));
+                    return;
+                }
+            }
+
+            if (args.length >= 3) {
+                if (args[2].equalsIgnoreCase("true")) {
+                    transparent = true;
+                } else if (!args[2].equalsIgnoreCase("false")) {
+                    mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Transparency must be true or false"));
                     return;
                 }
             }
@@ -53,8 +84,9 @@ public class HologramCommand extends Command {
                 double yOffset = size >= 6 ? 1.5 : size >= 5 ? 1.0 : size >= 4 ? 0.5 : 0;
                 double y = mc.thePlayer.posY + 2.0 + yOffset;
                 double z = mc.thePlayer.posZ;
-                hologramListener.loadVideo(x, y, z, size);
-                mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Creating video hologram (size " + size + ")..."));
+                hologramListener.loadVideo(x, y, z, size, transparent);
+                String transparencyText = transparent ? " transparent" : " solid";
+                mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Creating" + transparencyText + " video hologram (size " + size + ")..."));
             }
             return;
         }
