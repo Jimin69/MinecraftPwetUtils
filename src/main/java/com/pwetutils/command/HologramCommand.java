@@ -38,19 +38,20 @@ public class HologramCommand extends Command {
             if (args.length >= 2) {
                 try {
                     size = Integer.parseInt(args[1]);
-                    if (size < 2 || size > 5) {
-                        mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Size must be between 2 and 5"));
+                    if (size < 2 || size > 6) {
+                        mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Size must be between 2 and 6"));
                         return;
                     }
                 } catch (NumberFormatException e) {
-                    mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Invalid size. Usage: /hologram video [2-5]"));
+                    mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Invalid size. Usage: /hologram video [2-6]"));
                     return;
                 }
             }
 
             if (hologramListener != null && mc.thePlayer != null) {
                 double x = mc.thePlayer.posX;
-                double y = mc.thePlayer.posY + 2.0;
+                double yOffset = size >= 6 ? 1.5 : size >= 5 ? 1.0 : size >= 4 ? 0.5 : 0;
+                double y = mc.thePlayer.posY + 2.0 + yOffset;
                 double z = mc.thePlayer.posZ;
                 hologramListener.loadVideo(x, y, z, size);
                 mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Creating video hologram (size " + size + ")..."));
