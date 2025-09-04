@@ -13,7 +13,7 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 public class VideoHologram {
-    private static final String VIDEO_SERVER_URL = "http://85.215.152.109:3008";
+    public static final String VIDEO_SERVER_URL = "http://85.215.152.109:3008";
     private static final int FRAMES_BEHIND = 1;
     private static final int FRAMES_AHEAD = 3;
 
@@ -36,6 +36,7 @@ public class VideoHologram {
     private long creationTime;
     private boolean paused = false;
     private final boolean transparent;
+    private VideoHologramAudio audio;
 
     private static class FrameData {
         final DynamicTexture texture;
@@ -68,14 +69,33 @@ public class VideoHologram {
         this.creationTime = System.currentTimeMillis();
         loadScreens();
         loadMetadata();
+        this.audio = new VideoHologramAudio(x, y, z);
+    }
+
+    private void updateAudioState() {
+        if (audio == null) return;
+
+        switch (state) {
+            case PLAYING:
+                if (!audio.isPlaying()) {
+                    audio.start();
+                }
+                break;
+            case LAST_FRAME:
+            case END_SCREEN:
+                audio.stop();
+                break;
+        }
     }
 
     public void pause() {
         paused = true;
+        if (audio != null) audio.pause();
     }
 
     public void resume() {
         paused = false;
+        if (audio != null) audio.resume();
     }
 
     public boolean isPaused() {
@@ -217,6 +237,11 @@ public class VideoHologram {
                 Minecraft.getMinecraft().getTextureManager().deleteTexture(endScreenLocation);
             }
         }
+
+        if (audio != null) {
+            audio.cleanup();
+            audio = null;
+        }
     }
 
     public ResourceLocation getCurrentTexture() {
@@ -225,6 +250,7 @@ public class VideoHologram {
         }
 
         long now = System.currentTimeMillis();
+        VideoState oldState = state;
 
         switch (state) {
             case WAITING:
@@ -237,6 +263,7 @@ public class VideoHologram {
                     state = VideoState.PLAYING;
                     lastFrameTime = now;
                     currentFrame = 1;
+                    updateAudioState();
                     return frameCache.get(1).location;
                 }
                 return null;
@@ -249,6 +276,7 @@ public class VideoHologram {
                     state = VideoState.PLAYING;
                     lastFrameTime = now;
                     currentFrame = 1;
+                    updateAudioState();
                     return frameCache.get(1).location;
                 }
                 return startScreenLocation;
@@ -262,6 +290,7 @@ public class VideoHologram {
                     if (currentFrame >= totalFrames) {
                         state = VideoState.LAST_FRAME;
                         videoEndTime = now;
+                        updateAudioState();
                     } else {
                         for (int i = currentFrame + 1; i <= Math.min(currentFrame + FRAMES_AHEAD, totalFrames); i++) {
                             loadFrame(i);
@@ -290,6 +319,7 @@ public class VideoHologram {
                     return lastFrame != null ? lastFrame.location : null;
                 }
                 state = VideoState.END_SCREEN;
+                updateAudioState();
                 frameCache.values().forEach(this::disposeFrame);
                 frameCache.clear();
 
