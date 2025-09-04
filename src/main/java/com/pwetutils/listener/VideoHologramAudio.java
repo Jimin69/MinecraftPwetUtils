@@ -7,6 +7,7 @@ import net.minecraft.client.Minecraft;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 import java.nio.FloatBuffer;
+import java.nio.ShortBuffer;
 import java.net.URL;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
@@ -17,6 +18,7 @@ import java.util.concurrent.CompletableFuture;
 public class VideoHologramAudio {
     private static final int SAMPLE_RATE = 44100;
     private static final int NUM_BUFFERS = 4;
+    private static final int FADE_SAMPLES = 128; // Increased fade length
 
     private final double x, y, z;
     private int source;
@@ -132,11 +134,52 @@ public class VideoHologramAudio {
 
             byte[] audioData = baos.toByteArray();
             if (audioData.length > 44) {
-                ByteBuffer audioBuffer = BufferUtils.createByteBuffer(audioData.length - 44);
-                audioBuffer.put(audioData, 44, audioData.length - 44);
-                audioBuffer.flip();
+                // Convert to samples for processing
+                int dataLength = audioData.length - 44;
+                ByteBuffer rawBuffer = BufferUtils.createByteBuffer(dataLength);
+                rawBuffer.put(audioData, 44, dataLength);
+                rawBuffer.flip();
 
-                AL10.alBufferData(buffer, AL10.AL_FORMAT_STEREO16, audioBuffer, SAMPLE_RATE);
+                ShortBuffer shortBuffer = rawBuffer.asShortBuffer();
+                short[] samples = new short[shortBuffer.remaining()];
+                shortBuffer.get(samples);
+
+                // Apply fade only to non-first and non-last chunks
+                boolean isFirstChunk = (time == 0);
+                boolean isLastChunk = (time + 1.0f >= audioDuration);
+
+                if (!isFirstChunk) {
+                    // Fade in at start
+                    int fadeInSamples = Math.min(FADE_SAMPLES * 2, samples.length / 8);
+                    for (int i = 0; i < fadeInSamples; i += 2) {
+                        float factor = (float)i / fadeInSamples;
+                        factor = factor * factor; // Quadratic fade for smoother transition
+                        samples[i] = (short)(samples[i] * factor);
+                        samples[i + 1] = (short)(samples[i + 1] * factor);
+                    }
+                }
+
+                if (!isLastChunk) {
+                    // Fade out at end
+                    int fadeOutSamples = Math.min(FADE_SAMPLES * 2, samples.length / 8);
+                    int startFade = samples.length - fadeOutSamples;
+                    for (int i = 0; i < fadeOutSamples; i += 2) {
+                        float factor = 1.0f - ((float)i / fadeOutSamples);
+                        factor = factor * factor; // Quadratic fade
+                        samples[startFade + i] = (short)(samples[startFade + i] * factor);
+                        samples[startFade + i + 1] = (short)(samples[startFade + i + 1] * factor);
+                    }
+                }
+
+                // Convert back to byte buffer
+                ByteBuffer processedBuffer = BufferUtils.createByteBuffer(samples.length * 2);
+                for (short sample : samples) {
+                    processedBuffer.put((byte)(sample & 0xFF));
+                    processedBuffer.put((byte)((sample >> 8) & 0xFF));
+                }
+                processedBuffer.flip();
+
+                AL10.alBufferData(buffer, AL10.AL_FORMAT_STEREO16, processedBuffer, SAMPLE_RATE);
                 IntBuffer buf = BufferUtils.createIntBuffer(1);
                 buf.put(buffer).flip();
                 AL10.alSourceQueueBuffers(source, buf);
