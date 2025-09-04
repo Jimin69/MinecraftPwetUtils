@@ -21,7 +21,44 @@ public class HologramCommand extends Command {
         Minecraft mc = Minecraft.getMinecraft();
 
         if (args.length == 0) {
-            mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Usage: /hologram <video|clear|url>"));
+            mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Usage: /hologram <video|image|clear|vp|vr>"));
+            return;
+        }
+
+        if (args[0].equalsIgnoreCase("vp")) {
+            if (hologramListener != null && hologramListener.hasVideoHologram()) {
+                boolean paused = hologramListener.togglePauseVideo();
+                mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Video " + (paused ? "paused" : "resumed")));
+            } else {
+                mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] No video hologram to pause"));
+            }
+            return;
+        }
+
+        if (args[0].equalsIgnoreCase("vr")) {
+            if (hologramListener != null && hologramListener.hasVideoHologram()) {
+                hologramListener.restartVideo();
+                mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Video restarted"));
+            } else {
+                mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] No video hologram to restart"));
+            }
+            return;
+        }
+
+        if (args[0].equalsIgnoreCase("image")) {
+            if (args.length < 2) {
+                mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Usage: /hologram image <url>"));
+                return;
+            }
+
+            String url = args[1];
+            if (hologramListener != null && mc.thePlayer != null) {
+                double x = mc.thePlayer.posX;
+                double y = mc.thePlayer.posY + 1.5;
+                double z = mc.thePlayer.posZ;
+                hologramListener.loadImage(url, x, y, z);
+                mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Creating image hologram..."));
+            }
             return;
         }
 
@@ -44,11 +81,7 @@ public class HologramCommand extends Command {
                 if (args[1].equalsIgnoreCase("pause")) {
                     if (hologramListener != null && hologramListener.hasVideoHologram()) {
                         boolean paused = hologramListener.togglePauseVideo();
-                        if (paused) {
-                            mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Video paused"));
-                        } else {
-                            mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Video resumed"));
-                        }
+                        mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Video " + (paused ? "paused" : "resumed")));
                     } else {
                         mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] No video hologram to pause"));
                     }
@@ -111,13 +144,6 @@ public class HologramCommand extends Command {
             return;
         }
 
-        String url = args[0];
-        if (hologramListener != null && mc.thePlayer != null) {
-            double x = mc.thePlayer.posX;
-            double y = mc.thePlayer.posY + 1.5;
-            double z = mc.thePlayer.posZ;
-            hologramListener.loadImage(url, x, y, z);
-            mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Creating image hologram..."));
-        }
+        mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Unknown argument. Use /hologram <video|image|clear|vp|vr>"));
     }
 }
