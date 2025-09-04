@@ -23,7 +23,8 @@ public class VideoHologramAudio {
     private final Queue<Integer> availableBuffers = new LinkedList<>();
     private final Queue<Integer> queuedBuffers = new LinkedList<>();
     private Thread streamThread;
-    private boolean playing = false;
+    private volatile boolean playing = false;
+    private volatile boolean paused = false;
     private float nextChunkTime = 0;
     private boolean hasAudio = false;
     private float audioDuration = 0;
@@ -45,7 +46,6 @@ public class VideoHologramAudio {
             AL10.alSourcef(source, AL10.AL_MAX_DISTANCE, 20.0f);
             AL10.alSourcef(source, AL10.AL_ROLLOFF_FACTOR, 1.0f);
 
-            // Generate buffers and add to available queue
             for (int i = 0; i < NUM_BUFFERS; i++) {
                 availableBuffers.offer(AL10.alGenBuffers());
             }
@@ -73,38 +73,37 @@ public class VideoHologramAudio {
     public void start() {
         if (!hasAudio || playing) return;
         playing = true;
+        paused = false;
         nextChunkTime = 0;
 
         streamThread = new Thread(() -> {
             while (playing) {
-                // Reclaim processed buffers
-                int processed = AL10.alGetSourcei(source, AL10.AL_BUFFERS_PROCESSED);
-                while (processed-- > 0) {
-                    IntBuffer buffer = BufferUtils.createIntBuffer(1);
-                    AL10.alSourceUnqueueBuffers(source, buffer);
-                    availableBuffers.offer(buffer.get(0));
-                }
-
-                // Load and queue new chunks if we have buffers and more audio
-                if (!availableBuffers.isEmpty() && nextChunkTime < audioDuration) {
-                    Integer buffer = availableBuffers.poll();
-                    if (loadAndQueueChunk(buffer, nextChunkTime)) {
-                        queuedBuffers.offer(buffer);
-                        nextChunkTime += 1.0f;
-                    } else {
-                        availableBuffers.offer(buffer); // Return buffer if load failed
+                if (!paused) {
+                    int processed = AL10.alGetSourcei(source, AL10.AL_BUFFERS_PROCESSED);
+                    while (processed-- > 0) {
+                        IntBuffer buffer = BufferUtils.createIntBuffer(1);
+                        AL10.alSourceUnqueueBuffers(source, buffer);
+                        availableBuffers.offer(buffer.get(0));
                     }
-                }
 
-                // Keep playing
-                int state = AL10.alGetSourcei(source, AL10.AL_SOURCE_STATE);
-                if (state != AL10.AL_PLAYING && !queuedBuffers.isEmpty()) {
-                    AL10.alSourcePlay(source);
-                }
+                    if (!availableBuffers.isEmpty() && nextChunkTime < audioDuration) {
+                        Integer buffer = availableBuffers.poll();
+                        if (loadAndQueueChunk(buffer, nextChunkTime)) {
+                            queuedBuffers.offer(buffer);
+                            nextChunkTime += 1.0f;
+                        } else {
+                            availableBuffers.offer(buffer);
+                        }
+                    }
 
-                // Stop if we've played everything
-                if (nextChunkTime >= audioDuration && AL10.alGetSourcei(source, AL10.AL_BUFFERS_QUEUED) == 0) {
-                    playing = false;
+                    int state = AL10.alGetSourcei(source, AL10.AL_SOURCE_STATE);
+                    if (state != AL10.AL_PLAYING && !queuedBuffers.isEmpty()) {
+                        AL10.alSourcePlay(source);
+                    }
+
+                    if (nextChunkTime >= audioDuration && AL10.alGetSourcei(source, AL10.AL_BUFFERS_QUEUED) == 0) {
+                        playing = false;
+                    }
                 }
 
                 updateListenerPosition();
@@ -144,7 +143,6 @@ public class VideoHologramAudio {
                 return true;
             }
         } catch (Exception e) {
-            // Silent fail
         }
         return false;
     }
@@ -172,30 +170,32 @@ public class VideoHologramAudio {
     }
 
     public boolean isPlaying() {
-        return playing;
+        return playing && !paused;
     }
 
     public void pause() {
-        if (playing) {
+        if (playing && !paused) {
+            paused = true;
             AL10.alSourcePause(source);
         }
     }
 
     public void resume() {
-        if (playing) {
+        if (playing && paused) {
+            paused = false;
             AL10.alSourcePlay(source);
         }
     }
 
     public void stop() {
         playing = false;
+        paused = false;
         if (streamThread != null) {
             streamThread.interrupt();
         }
         AL10.alSourceStop(source);
         AL10.alSourcei(source, AL10.AL_BUFFER, AL10.AL_NONE);
 
-        // Return all buffers to available
         availableBuffers.addAll(queuedBuffers);
         queuedBuffers.clear();
     }
