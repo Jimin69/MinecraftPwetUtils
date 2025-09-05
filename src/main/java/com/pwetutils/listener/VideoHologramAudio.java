@@ -18,7 +18,7 @@ import java.util.concurrent.CompletableFuture;
 public class VideoHologramAudio {
     private static final int SAMPLE_RATE = 44100;
     private static final int NUM_BUFFERS = 4;
-    private static final int FADE_SAMPLES = 128; // Increased fade length
+    private static final int FADE_SAMPLES = 128;
 
     private final double x, y, z;
     private int source;
@@ -30,6 +30,7 @@ public class VideoHologramAudio {
     private float nextChunkTime = 0;
     private boolean hasAudio = false;
     private float audioDuration = 0;
+    private boolean allChunksLoaded = false;
 
     public VideoHologramAudio(double x, double y, double z) {
         this.x = x;
@@ -77,6 +78,7 @@ public class VideoHologramAudio {
         playing = true;
         paused = false;
         nextChunkTime = 0;
+        allChunksLoaded = false;
 
         streamThread = new Thread(() -> {
             while (playing) {
@@ -88,11 +90,14 @@ public class VideoHologramAudio {
                         availableBuffers.offer(buffer.get(0));
                     }
 
-                    if (!availableBuffers.isEmpty() && nextChunkTime < audioDuration) {
+                    if (!availableBuffers.isEmpty() && !allChunksLoaded) {
                         Integer buffer = availableBuffers.poll();
                         if (loadAndQueueChunk(buffer, nextChunkTime)) {
                             queuedBuffers.offer(buffer);
                             nextChunkTime += 1.0f;
+                            if (nextChunkTime >= audioDuration) {
+                                allChunksLoaded = true;
+                            }
                         } else {
                             availableBuffers.offer(buffer);
                         }
@@ -103,7 +108,9 @@ public class VideoHologramAudio {
                         AL10.alSourcePlay(source);
                     }
 
-                    if (nextChunkTime >= audioDuration && AL10.alGetSourcei(source, AL10.AL_BUFFERS_QUEUED) == 0) {
+                    if (allChunksLoaded &&
+                            AL10.alGetSourcei(source, AL10.AL_BUFFERS_QUEUED) == 0 &&
+                            state != AL10.AL_PLAYING) {
                         playing = false;
                     }
                 }
@@ -121,7 +128,10 @@ public class VideoHologramAudio {
     }
 
     private boolean loadAndQueueChunk(int buffer, float time) {
+        if (time >= audioDuration) return false;
+
         try {
+            float chunkDuration = Math.min(1.0f, audioDuration - time);
             URL url = new URL(VideoHologram.VIDEO_SERVER_URL + "/audio/chunk/" + time);
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             try (InputStream is = url.openStream()) {
@@ -134,7 +144,6 @@ public class VideoHologramAudio {
 
             byte[] audioData = baos.toByteArray();
             if (audioData.length > 44) {
-                // Convert to samples for processing
                 int dataLength = audioData.length - 44;
                 ByteBuffer rawBuffer = BufferUtils.createByteBuffer(dataLength);
                 rawBuffer.put(audioData, 44, dataLength);
@@ -144,34 +153,28 @@ public class VideoHologramAudio {
                 short[] samples = new short[shortBuffer.remaining()];
                 shortBuffer.get(samples);
 
-                // Apply fade only to non-first and non-last chunks
                 boolean isFirstChunk = (time == 0);
                 boolean isLastChunk = (time + 1.0f >= audioDuration);
 
-                if (!isFirstChunk) {
-                    // Fade in at start
+                if (!isFirstChunk && !isLastChunk) {
                     int fadeInSamples = Math.min(FADE_SAMPLES * 2, samples.length / 8);
                     for (int i = 0; i < fadeInSamples; i += 2) {
                         float factor = (float)i / fadeInSamples;
-                        factor = factor * factor; // Quadratic fade for smoother transition
+                        factor = factor * factor;
                         samples[i] = (short)(samples[i] * factor);
                         samples[i + 1] = (short)(samples[i + 1] * factor);
                     }
-                }
 
-                if (!isLastChunk) {
-                    // Fade out at end
                     int fadeOutSamples = Math.min(FADE_SAMPLES * 2, samples.length / 8);
                     int startFade = samples.length - fadeOutSamples;
                     for (int i = 0; i < fadeOutSamples; i += 2) {
                         float factor = 1.0f - ((float)i / fadeOutSamples);
-                        factor = factor * factor; // Quadratic fade
+                        factor = factor * factor;
                         samples[startFade + i] = (short)(samples[startFade + i] * factor);
                         samples[startFade + i + 1] = (short)(samples[startFade + i + 1] * factor);
                     }
                 }
 
-                // Convert back to byte buffer
                 ByteBuffer processedBuffer = BufferUtils.createByteBuffer(samples.length * 2);
                 for (short sample : samples) {
                     processedBuffer.put((byte)(sample & 0xFF));
