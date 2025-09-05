@@ -11,11 +11,14 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class VideoHologram {
     public static final String VIDEO_SERVER_URL = "http://85.215.152.109:3008";
     private static final int FRAMES_BEHIND = 1;
     private static final int FRAMES_AHEAD = 3;
+
+    private static final CopyOnWriteArrayList<VideoHologram> activeInstances = new CopyOnWriteArrayList<>();
 
     private final double x, y, z;
     private final float width, height;
@@ -57,6 +60,46 @@ public class VideoHologram {
     }
     private VideoState state = VideoState.WAITING;
 
+    static {
+        Thread globalMonitor = new Thread(() -> {
+            boolean lastWorldState = true;
+
+            while (true) {
+                try {
+                    Minecraft mc = Minecraft.getMinecraft();
+                    boolean worldExists = mc != null && mc.theWorld != null;
+
+                    if (!worldExists && lastWorldState) {
+                        // world became null - pause all videos
+                        for (VideoHologram instance : activeInstances) {
+                            if (!instance.paused) {
+                                instance.paused = true;
+                                if (instance.audio != null && instance.audio.isPlaying()) {
+                                    instance.audio.pause();
+                                }
+                            }
+                            // reset time to prevent jumping when resumed
+                            instance.lastFrameTime = System.currentTimeMillis();
+                        }
+
+                    } else if (worldExists && !lastWorldState) {
+                        // world restored - keep videos paused but reset timing
+                        for (VideoHologram instance : activeInstances) {
+                            instance.lastFrameTime = System.currentTimeMillis();
+                        }
+                    }
+
+                    lastWorldState = worldExists;
+                    Thread.sleep(50);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+        globalMonitor.setDaemon(true);
+        globalMonitor.start();
+    }
+
     public VideoHologram(double x, double y, double z, int sizeLevel, boolean transparent) {
         this.x = x;
         this.y = y;
@@ -67,6 +110,7 @@ public class VideoHologram {
         this.height = baseSize * 0.6f;
         this.transparent = transparent;
         this.creationTime = System.currentTimeMillis();
+        activeInstances.add(this);
         loadScreens();
         loadMetadata();
         this.audio = new VideoHologramAudio(x, y, z);
@@ -77,7 +121,7 @@ public class VideoHologram {
 
         switch (state) {
             case PLAYING:
-                if (!audio.isPlaying()) {
+                if (!audio.isPlaying() && !paused) {
                     audio.start();
                 }
                 break;
@@ -95,6 +139,7 @@ public class VideoHologram {
 
     public void resume() {
         paused = false;
+        lastFrameTime = System.currentTimeMillis(); // reset time to prevent jump
         if (audio != null) audio.resume();
     }
 
@@ -253,6 +298,8 @@ public class VideoHologram {
     }
 
     public void cleanup() {
+        activeInstances.remove(this);
+
         frameCache.values().forEach(this::disposeFrame);
         frameCache.clear();
         loadingFrames.values().forEach(f -> f.cancel(true));
@@ -325,7 +372,6 @@ public class VideoHologram {
         }
 
         long now = System.currentTimeMillis();
-        VideoState oldState = state;
 
         switch (state) {
             case WAITING:
@@ -373,7 +419,7 @@ public class VideoHologram {
                         cleanupFrames(currentFrame);
                     }
                 } else if (paused) {
-                    lastFrameTime = now;
+                    lastFrameTime = now; // keep updating time while paused to prevent jump
                 }
 
                 for (int i = currentFrame; i >= Math.max(1, currentFrame - FRAMES_BEHIND); i--) {
