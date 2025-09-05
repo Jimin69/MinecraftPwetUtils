@@ -43,14 +43,22 @@ public class HologramImageListener {
     }
 
     public void skipForward() {
+        skipForward(5);
+    }
+
+    public void skipForward(int seconds) {
         if (currentVideoHologram != null) {
-            currentVideoHologram.skip(5.0f);
+            currentVideoHologram.skip((float)seconds);
         }
     }
 
     public void skipBackward() {
+        skipBackward(5);
+    }
+
+    public void skipBackward(int seconds) {
         if (currentVideoHologram != null) {
-            currentVideoHologram.skip(-5.0f);
+            currentVideoHologram.skip((float)-seconds);
         }
     }
 

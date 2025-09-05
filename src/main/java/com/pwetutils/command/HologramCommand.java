@@ -66,7 +66,8 @@ public class HologramCommand extends Command {
             if (args.length >= 2) {
                 if (args[1].equalsIgnoreCase("help")) {
                     mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Usage: §e/hologram video §7<size> <transparency:true/false>"));
-                    mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Or: §e/hologram video §7<pause|restart|delete|skipf|skipb>"));
+                    mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Or: §e/hologram video §7<pause|restart|delete>"));
+                    mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Or: §e/hologram video skipf/skipb §7[5|10|15|20|30|60]"));
                     return;
                 }
 
@@ -100,8 +101,22 @@ public class HologramCommand extends Command {
 
                 if (args[1].equalsIgnoreCase("skipf")) {
                     if (hologramListener != null && hologramListener.hasVideoHologram()) {
-                        hologramListener.skipForward();
-                        mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Skipped forward 5 seconds"));
+                        int skipSeconds = 5;
+                        if (args.length >= 3) {
+                            try {
+                                skipSeconds = Integer.parseInt(args[2]);
+                                if (skipSeconds != 5 && skipSeconds != 10 && skipSeconds != 15 &&
+                                        skipSeconds != 20 && skipSeconds != 30 && skipSeconds != 60) {
+                                    mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Invalid skip duration. Use: 5, 10, 15, 20, 30, or 60"));
+                                    return;
+                                }
+                            } catch (NumberFormatException e) {
+                                mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Invalid number format"));
+                                return;
+                            }
+                        }
+                        hologramListener.skipForward(skipSeconds);
+                        mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Skipped forward " + skipSeconds + " seconds"));
                     } else {
                         mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] No video hologram to skip"));
                     }
@@ -110,8 +125,22 @@ public class HologramCommand extends Command {
 
                 if (args[1].equalsIgnoreCase("skipb")) {
                     if (hologramListener != null && hologramListener.hasVideoHologram()) {
-                        hologramListener.skipBackward();
-                        mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Skipped backward 5 seconds"));
+                        int skipSeconds = 5;
+                        if (args.length >= 3) {
+                            try {
+                                skipSeconds = Integer.parseInt(args[2]);
+                                if (skipSeconds != 5 && skipSeconds != 10 && skipSeconds != 15 &&
+                                        skipSeconds != 20 && skipSeconds != 30 && skipSeconds != 60) {
+                                    mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Invalid skip duration. Use: 5, 10, 15, 20, 30, or 60"));
+                                    return;
+                                }
+                            } catch (NumberFormatException e) {
+                                mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Invalid number format"));
+                                return;
+                            }
+                        }
+                        hologramListener.skipBackward(skipSeconds);
+                        mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Skipped backward " + skipSeconds + " seconds"));
                     } else {
                         mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] No video hologram to skip"));
                     }
