@@ -31,6 +31,7 @@ public class VideoHologramAudio {
     private boolean hasAudio = false;
     private float audioDuration = 0;
     private boolean allChunksLoaded = false;
+    private long lastBufferProcessedTime = 0;
 
     public VideoHologramAudio(double x, double y, double z) {
         this.x = x;
@@ -80,6 +81,7 @@ public class VideoHologramAudio {
         nextChunkTime = 0;
         startAt(0);
         allChunksLoaded = false;
+        lastBufferProcessedTime = 0;
 
         streamThread = new Thread(() -> {
             while (playing) {
@@ -89,6 +91,9 @@ public class VideoHologramAudio {
                         IntBuffer buffer = BufferUtils.createIntBuffer(1);
                         AL10.alSourceUnqueueBuffers(source, buffer);
                         availableBuffers.offer(buffer.get(0));
+                        if (allChunksLoaded) {
+                            lastBufferProcessedTime = System.currentTimeMillis();
+                        }
                     }
 
                     if (!availableBuffers.isEmpty() && !allChunksLoaded) {
@@ -105,21 +110,24 @@ public class VideoHologramAudio {
                     }
 
                     int state = AL10.alGetSourcei(source, AL10.AL_SOURCE_STATE);
-                    if (state != AL10.AL_PLAYING && !queuedBuffers.isEmpty()) {
+                    int queued = AL10.alGetSourcei(source, AL10.AL_BUFFERS_QUEUED);
+
+                    if (state != AL10.AL_PLAYING && queued > 0) {
                         AL10.alSourcePlay(source);
                     }
 
-                    if (allChunksLoaded &&
-                            AL10.alGetSourcei(source, AL10.AL_BUFFERS_QUEUED) == 0 &&
-                            state != AL10.AL_PLAYING) {
-                        playing = false;
+                    if (allChunksLoaded && queued == 0 && state != AL10.AL_PLAYING) {
+                        if (lastBufferProcessedTime > 0 &&
+                                System.currentTimeMillis() - lastBufferProcessedTime > 500) {
+                            playing = false;
+                        }
                     }
                 }
 
                 updateListenerPosition();
 
                 try {
-                    Thread.sleep(100);
+                    Thread.sleep(50);
                 } catch (InterruptedException e) {
                     break;
                 }
@@ -132,11 +140,10 @@ public class VideoHologramAudio {
         if (time >= audioDuration) return false;
 
         try {
-            float chunkDuration = Math.min(1.0f, audioDuration - time);
             URL url = new URL(VideoHologram.VIDEO_SERVER_URL + "/audio/chunk/" + time);
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             try (InputStream is = url.openStream()) {
-                byte[] buf = new byte[4096];
+                byte[] buf = new byte[8192];
                 int bytesRead;
                 while ((bytesRead = is.read(buf)) != -1) {
                     baos.write(buf, 0, bytesRead);
@@ -266,6 +273,7 @@ public class VideoHologramAudio {
 
         nextChunkTime = (float)Math.floor(time);
         allChunksLoaded = false;
+        lastBufferProcessedTime = 0;
 
         availableBuffers.clear();
         queuedBuffers.clear();
@@ -284,6 +292,7 @@ public class VideoHologramAudio {
         paused = false;
         nextChunkTime = startTime;
         allChunksLoaded = false;
+        lastBufferProcessedTime = 0;
 
         streamThread = new Thread(() -> {
             while (playing) {
@@ -293,6 +302,9 @@ public class VideoHologramAudio {
                         IntBuffer buffer = BufferUtils.createIntBuffer(1);
                         AL10.alSourceUnqueueBuffers(source, buffer);
                         availableBuffers.offer(buffer.get(0));
+                        if (allChunksLoaded) {
+                            lastBufferProcessedTime = System.currentTimeMillis();
+                        }
                     }
 
                     if (!availableBuffers.isEmpty() && !allChunksLoaded) {
@@ -309,21 +321,24 @@ public class VideoHologramAudio {
                     }
 
                     int state = AL10.alGetSourcei(source, AL10.AL_SOURCE_STATE);
-                    if (state != AL10.AL_PLAYING && !queuedBuffers.isEmpty()) {
+                    int queued = AL10.alGetSourcei(source, AL10.AL_BUFFERS_QUEUED);
+
+                    if (state != AL10.AL_PLAYING && queued > 0) {
                         AL10.alSourcePlay(source);
                     }
 
-                    if (allChunksLoaded &&
-                            AL10.alGetSourcei(source, AL10.AL_BUFFERS_QUEUED) == 0 &&
-                            state != AL10.AL_PLAYING) {
-                        playing = false;
+                    if (allChunksLoaded && queued == 0 && state != AL10.AL_PLAYING) {
+                        if (lastBufferProcessedTime > 0 &&
+                                System.currentTimeMillis() - lastBufferProcessedTime > 500) {
+                            playing = false;
+                        }
                     }
                 }
 
                 updateListenerPosition();
 
                 try {
-                    Thread.sleep(100);
+                    Thread.sleep(50);
                 } catch (InterruptedException e) {
                     break;
                 }
@@ -339,5 +354,13 @@ public class VideoHologramAudio {
 
     public void setVolume(float volume) {
         AL10.alSourcef(source, AL10.AL_GAIN, volume);
+    }
+
+    public void skipForward(float seconds) {
+        seekTo((float)Math.floor(nextChunkTime) + seconds);
+    }
+
+    public void skipBackward(float seconds) {
+        seekTo(Math.max(0, (float)Math.floor(nextChunkTime) - seconds - 1.0f));
     }
 }
