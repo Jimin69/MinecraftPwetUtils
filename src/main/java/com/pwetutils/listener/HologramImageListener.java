@@ -45,6 +45,19 @@ public class HologramImageListener {
         return 0;
     }
 
+    public void seekVideo(float seconds) {
+        if (currentVideoHologram != null) {
+            currentVideoHologram.seekTo(seconds);
+        }
+    }
+
+    public float getVideoDuration() {
+        if (currentVideoHologram != null) {
+            return currentVideoHologram.getDuration();
+        }
+        return 0;
+    }
+
     public boolean hasVideoHologram() {
         return currentVideoHologram != null;
     }

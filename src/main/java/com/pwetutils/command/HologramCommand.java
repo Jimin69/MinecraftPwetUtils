@@ -4,6 +4,9 @@ import com.pwetutils.listener.HologramImageListener;
 import net.weavemc.loader.api.command.Command;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.ChatComponentText;
+import net.minecraft.util.ChatStyle;
+import net.minecraft.event.ClickEvent;
+import net.minecraft.event.HoverEvent;
 
 public class HologramCommand extends Command {
     private static HologramImageListener hologramListener;
@@ -76,16 +79,61 @@ public class HologramCommand extends Command {
         if (args[0].equalsIgnoreCase("vpr")) {
             if (hologramListener != null && hologramListener.hasVideoHologram()) {
                 float progress = hologramListener.getVideoProgress();
-                int filled = (int)(progress * 70);
-                int empty = 70 - filled;
-                StringBuilder bar = new StringBuilder("§7[§c");
-                for (int i = 0; i < filled; i++) bar.append("|");
-                bar.append("§f");
-                for (int i = 0; i < empty; i++) bar.append("|");
-                bar.append("§7]");
-                mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] " + bar.toString()));
+                float duration = hologramListener.getVideoDuration();
+                float currentTime = duration * progress;
+
+                ChatComponentText message = new ChatComponentText("§7[§6PwetUtils§7] §7[");
+
+                for (int i = 0; i < 70; i++) {
+                    float barProgress = i / 69.0f;
+                    float videoTime = duration * barProgress;
+                    String timeStr = formatTime(videoTime, duration);
+
+                    ChatComponentText bar = new ChatComponentText(i <= (int)(progress * 69) ? "§c|" : "§f|");
+                    bar.setChatStyle(new ChatStyle()
+                            .setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ChatComponentText("§f" + timeStr)))
+                            .setChatClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/hologram vseek " + videoTime)));
+                    message.appendSibling(bar);
+                }
+
+                message.appendSibling(new ChatComponentText("§7] §7" + formatTime(currentTime, duration) + "§f/§7" + formatTime(duration, duration)));
+                mc.thePlayer.addChatMessage(message);
             } else {
                 mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] No video hologram playing"));
+            }
+            return;
+        }
+
+        if (args[0].equalsIgnoreCase("vseek")) {
+            if (args.length < 2) return;
+            if (hologramListener != null && hologramListener.hasVideoHologram()) {
+                try {
+                    float seconds = Float.parseFloat(args[1]);
+                    hologramListener.seekVideo(seconds);
+
+                    float progress = hologramListener.getVideoProgress();
+                    float duration = hologramListener.getVideoDuration();
+                    float currentTime = duration * progress;
+
+                    ChatComponentText message = new ChatComponentText("§7[§6PwetUtils§7] §7[");
+
+                    for (int i = 0; i < 70; i++) {
+                        float barProgress = i / 69.0f;
+                        float videoTime = duration * barProgress;
+                        String timeStr = formatTime(videoTime, duration);
+
+                        ChatComponentText bar = new ChatComponentText(i <= (int)(progress * 69) ? "§c|" : "§f|");
+                        bar.setChatStyle(new ChatStyle()
+                                .setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ChatComponentText("§f" + timeStr)))
+                                .setChatClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/hologram vseek " + videoTime)));
+                        message.appendSibling(bar);
+                    }
+
+                    message.appendSibling(new ChatComponentText("§7] §7" + formatTime(currentTime, duration) + "§f/§7" + formatTime(duration, duration)));
+                    mc.thePlayer.addChatMessage(message);
+                } catch (NumberFormatException e) {
+                    // Silent fail
+                }
             }
             return;
         }
@@ -167,14 +215,25 @@ public class HologramCommand extends Command {
                 if (args[1].equalsIgnoreCase("progress")) {
                     if (hologramListener != null && hologramListener.hasVideoHologram()) {
                         float progress = hologramListener.getVideoProgress();
-                        int filled = (int)(progress * 70);
-                        int empty = 70 - filled;
-                        StringBuilder bar = new StringBuilder("§7[§c");
-                        for (int i = 0; i < filled; i++) bar.append("|");
-                        bar.append("§f");
-                        for (int i = 0; i < empty; i++) bar.append("|");
-                        bar.append("§7]");
-                        mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] " + bar.toString()));
+                        float duration = hologramListener.getVideoDuration();
+                        float currentTime = duration * progress;
+
+                        ChatComponentText message = new ChatComponentText("§7[§6PwetUtils§7] §7[");
+
+                        for (int i = 0; i < 70; i++) {
+                            float barProgress = i / 69.0f;
+                            float videoTime = duration * barProgress;
+                            String timeStr = formatTime(videoTime, duration);
+
+                            ChatComponentText bar = new ChatComponentText(i <= (int)(progress * 69) ? "§c|" : "§f|");
+                            bar.setChatStyle(new ChatStyle()
+                                    .setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ChatComponentText("§f" + timeStr)))
+                                    .setChatClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/hologram vseek " + videoTime)));
+                            message.appendSibling(bar);
+                        }
+
+                        message.appendSibling(new ChatComponentText("§7] §7" + formatTime(currentTime, duration) + "§f/§7" + formatTime(duration, duration)));
+                        mc.thePlayer.addChatMessage(message);
                     } else {
                         mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] No video hologram playing"));
                     }
@@ -276,5 +335,20 @@ public class HologramCommand extends Command {
         }
 
         mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Unknown argument. Use /hologram <video|image|clear|vp|vr|vsf|vsb>"));
+    }
+
+    private String formatTime(float seconds, float totalSeconds) {
+        int totalSec = (int)seconds;
+        int hours = totalSec / 3600;
+        int minutes = (totalSec % 3600) / 60;
+        int secs = totalSec % 60;
+
+        if (totalSeconds >= 3600) {
+            return String.format("%02d:%02d:%02d", hours, minutes, secs);
+        } else if (totalSeconds >= 600) {
+            return String.format("%02d:%02d", minutes, secs);
+        } else {
+            return String.format("%d:%02d", minutes, secs);
+        }
     }
 }

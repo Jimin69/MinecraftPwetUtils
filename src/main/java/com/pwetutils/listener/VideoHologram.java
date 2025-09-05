@@ -157,6 +157,40 @@ public class VideoHologram {
         });
     }
 
+    public void seekTo(float seconds) {
+        if (state != VideoState.PLAYING) return;
+
+        int targetFrame = (int)(seconds * 10) + 1;
+        targetFrame = Math.max(1, Math.min(targetFrame, totalFrames));
+
+        currentFrame = targetFrame;
+        lastFrameTime = System.currentTimeMillis();
+
+        final int finalTargetFrame = targetFrame;
+
+        frameCache.entrySet().removeIf(entry -> {
+            int frame = entry.getKey();
+            if (frame < finalTargetFrame - FRAMES_BEHIND || frame > finalTargetFrame + FRAMES_AHEAD) {
+                disposeFrame(entry.getValue());
+                return true;
+            }
+            return false;
+        });
+
+        for (int i = finalTargetFrame - FRAMES_BEHIND; i <= Math.min(finalTargetFrame + FRAMES_AHEAD, totalFrames); i++) {
+            if (i > 0) loadFrame(i);
+        }
+
+        if (audio != null) {
+            audio.seekTo(seconds);
+        }
+    }
+
+    public float getDuration() {
+        if (!metadataLoaded || totalFrames == 0) return 0;
+        return totalFrames / 10.0f;
+    }
+
     private void loadFrame(int frame) {
         if (frame < 1 || frame > totalFrames) return;
         if (frameCache.containsKey(frame) || loadingFrames.containsKey(frame)) return;
