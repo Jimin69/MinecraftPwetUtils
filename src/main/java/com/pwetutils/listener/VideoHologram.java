@@ -244,6 +244,40 @@ public class VideoHologram {
         }
     }
 
+    public void skip(float seconds) {
+        if (state != VideoState.PLAYING) return;
+
+        int framesToSkip = (int)(seconds * 10);
+        int newFrame = currentFrame + framesToSkip;
+
+        newFrame = Math.max(1, Math.min(newFrame, totalFrames));
+
+        if (newFrame == currentFrame) return;
+
+        currentFrame = newFrame;
+        lastFrameTime = System.currentTimeMillis();
+
+        final int targetFrame = newFrame;
+
+        frameCache.entrySet().removeIf(entry -> {
+            int frame = entry.getKey();
+            if (frame < targetFrame - FRAMES_BEHIND || frame > targetFrame + FRAMES_AHEAD) {
+                disposeFrame(entry.getValue());
+                return true;
+            }
+            return false;
+        });
+
+        for (int i = targetFrame - FRAMES_BEHIND; i <= Math.min(targetFrame + FRAMES_AHEAD, totalFrames); i++) {
+            if (i > 0) loadFrame(i);
+        }
+
+        if (audio != null) {
+            float newTime = (targetFrame - 1) / 10.0f;
+            audio.seekTo(newTime);
+        }
+    }
+
     public ResourceLocation getCurrentTexture() {
         if (!metadataLoaded || totalFrames == 0) {
             return null;

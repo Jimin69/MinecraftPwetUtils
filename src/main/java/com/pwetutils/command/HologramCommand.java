@@ -66,7 +66,7 @@ public class HologramCommand extends Command {
             if (args.length >= 2) {
                 if (args[1].equalsIgnoreCase("help")) {
                     mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Usage: §e/hologram video §7<size> <transparency:true/false>"));
-                    mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Or: §e/hologram video §7<pause|restart|delete>"));
+                    mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Or: §e/hologram video §7<pause|restart|delete|skipf|skipb>"));
                     return;
                 }
 
@@ -94,6 +94,26 @@ public class HologramCommand extends Command {
                         mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Video restarted"));
                     } else {
                         mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] No video hologram to restart"));
+                    }
+                    return;
+                }
+
+                if (args[1].equalsIgnoreCase("skipf")) {
+                    if (hologramListener != null && hologramListener.hasVideoHologram()) {
+                        hologramListener.skipForward();
+                        mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Skipped forward 5 seconds"));
+                    } else {
+                        mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] No video hologram to skip"));
+                    }
+                    return;
+                }
+
+                if (args[1].equalsIgnoreCase("skipb")) {
+                    if (hologramListener != null && hologramListener.hasVideoHologram()) {
+                        hologramListener.skipBackward();
+                        mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Skipped backward 5 seconds"));
+                    } else {
+                        mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] No video hologram to skip"));
                     }
                     return;
                 }

@@ -42,6 +42,18 @@ public class HologramImageListener {
         return currentVideoHologram != null;
     }
 
+    public void skipForward() {
+        if (currentVideoHologram != null) {
+            currentVideoHologram.skip(5.0f);
+        }
+    }
+
+    public void skipBackward() {
+        if (currentVideoHologram != null) {
+            currentVideoHologram.skip(-5.0f);
+        }
+    }
+
     public void restartVideo() {
         if (currentVideoHologram != null) {
             double x = currentVideoHologram.getX();

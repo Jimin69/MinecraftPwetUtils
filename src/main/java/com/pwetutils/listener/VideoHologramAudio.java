@@ -78,6 +78,7 @@ public class VideoHologramAudio {
         playing = true;
         paused = false;
         nextChunkTime = 0;
+        startAt(0);
         allChunksLoaded = false;
 
         streamThread = new Thread(() -> {
@@ -255,6 +256,80 @@ public class VideoHologramAudio {
         for (Integer buffer : queuedBuffers) {
             AL10.alDeleteBuffers(buffer);
         }
+    }
+
+    public void seekTo(float time) {
+        if (!hasAudio) return;
+
+        boolean wasPlaying = playing;
+        stop();
+
+        nextChunkTime = (float)Math.floor(time);
+        allChunksLoaded = false;
+
+        availableBuffers.clear();
+        queuedBuffers.clear();
+        for (int i = 0; i < NUM_BUFFERS; i++) {
+            availableBuffers.offer(AL10.alGenBuffers());
+        }
+
+        if (wasPlaying) {
+            startAt(nextChunkTime);
+        }
+    }
+
+    private void startAt(float startTime) {
+        if (!hasAudio || playing) return;
+        playing = true;
+        paused = false;
+        nextChunkTime = startTime;
+        allChunksLoaded = false;
+
+        streamThread = new Thread(() -> {
+            while (playing) {
+                if (!paused) {
+                    int processed = AL10.alGetSourcei(source, AL10.AL_BUFFERS_PROCESSED);
+                    while (processed-- > 0) {
+                        IntBuffer buffer = BufferUtils.createIntBuffer(1);
+                        AL10.alSourceUnqueueBuffers(source, buffer);
+                        availableBuffers.offer(buffer.get(0));
+                    }
+
+                    if (!availableBuffers.isEmpty() && !allChunksLoaded) {
+                        Integer buffer = availableBuffers.poll();
+                        if (loadAndQueueChunk(buffer, nextChunkTime)) {
+                            queuedBuffers.offer(buffer);
+                            nextChunkTime += 1.0f;
+                            if (nextChunkTime >= audioDuration) {
+                                allChunksLoaded = true;
+                            }
+                        } else {
+                            availableBuffers.offer(buffer);
+                        }
+                    }
+
+                    int state = AL10.alGetSourcei(source, AL10.AL_SOURCE_STATE);
+                    if (state != AL10.AL_PLAYING && !queuedBuffers.isEmpty()) {
+                        AL10.alSourcePlay(source);
+                    }
+
+                    if (allChunksLoaded &&
+                            AL10.alGetSourcei(source, AL10.AL_BUFFERS_QUEUED) == 0 &&
+                            state != AL10.AL_PLAYING) {
+                        playing = false;
+                    }
+                }
+
+                updateListenerPosition();
+
+                try {
+                    Thread.sleep(100);
+                } catch (InterruptedException e) {
+                    break;
+                }
+            }
+        });
+        streamThread.start();
     }
 
     public void restart() {
