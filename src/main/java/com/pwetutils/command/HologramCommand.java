@@ -21,7 +21,55 @@ public class HologramCommand extends Command {
         Minecraft mc = Minecraft.getMinecraft();
 
         if (args.length == 0) {
-            mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Usage: /hologram <video|image|clear|vp|vr>"));
+            mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Usage: /hologram <video|image|clear|vp|vr|vsf|vsb>"));
+            return;
+        }
+
+        if (args[0].equalsIgnoreCase("vsf")) {
+            if (hologramListener != null && hologramListener.hasVideoHologram()) {
+                int skipSeconds = 5;
+                if (args.length >= 2) {
+                    try {
+                        skipSeconds = Integer.parseInt(args[1]);
+                        if (skipSeconds != 5 && skipSeconds != 10 && skipSeconds != 15 &&
+                                skipSeconds != 20 && skipSeconds != 30 && skipSeconds != 60) {
+                            mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Invalid skip duration. Use: 5, 10, 15, 20, 30, or 60"));
+                            return;
+                        }
+                    } catch (NumberFormatException e) {
+                        mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Invalid number format"));
+                        return;
+                    }
+                }
+                hologramListener.skipForward(skipSeconds);
+                mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Skipped forward " + skipSeconds + " seconds"));
+            } else {
+                mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] No video hologram to skip"));
+            }
+            return;
+        }
+
+        if (args[0].equalsIgnoreCase("vsb")) {
+            if (hologramListener != null && hologramListener.hasVideoHologram()) {
+                int skipSeconds = 5;
+                if (args.length >= 2) {
+                    try {
+                        skipSeconds = Integer.parseInt(args[1]);
+                        if (skipSeconds != 5 && skipSeconds != 10 && skipSeconds != 15 &&
+                                skipSeconds != 20 && skipSeconds != 30 && skipSeconds != 60) {
+                            mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Invalid skip duration. Use: 5, 10, 15, 20, 30, or 60"));
+                            return;
+                        }
+                    } catch (NumberFormatException e) {
+                        mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Invalid number format"));
+                        return;
+                    }
+                }
+                hologramListener.skipBackward(skipSeconds);
+                mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Skipped backward " + skipSeconds + " seconds"));
+            } else {
+                mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] No video hologram to skip"));
+            }
             return;
         }
 
@@ -193,6 +241,6 @@ public class HologramCommand extends Command {
             return;
         }
 
-        mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Unknown argument. Use /hologram <video|image|clear|vp|vr>"));
+        mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Unknown argument. Use /hologram <video|image|clear|vp|vr|vsf|vsb>"));
     }
 }
