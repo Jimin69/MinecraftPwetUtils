@@ -21,7 +21,7 @@ public class HologramCommand extends Command {
         Minecraft mc = Minecraft.getMinecraft();
 
         if (args.length == 0) {
-            mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Usage: /hologram <video|image|clear|vp|vr|vsf|vsb>"));
+            mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Usage: /hologram <video|image|clear|vp|vr|vpr|vsf|vsb>"));
             return;
         }
 
@@ -69,6 +69,23 @@ public class HologramCommand extends Command {
                 mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Skipped backward " + skipSeconds + " seconds"));
             } else {
                 mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] No video hologram to skip"));
+            }
+            return;
+        }
+
+        if (args[0].equalsIgnoreCase("vpr")) {
+            if (hologramListener != null && hologramListener.hasVideoHologram()) {
+                float progress = hologramListener.getVideoProgress();
+                int filled = (int)(progress * 70);
+                int empty = 70 - filled;
+                StringBuilder bar = new StringBuilder("§7[§c");
+                for (int i = 0; i < filled; i++) bar.append("|");
+                bar.append("§f");
+                for (int i = 0; i < empty; i++) bar.append("|");
+                bar.append("§7]");
+                mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] " + bar.toString()));
+            } else {
+                mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] No video hologram playing"));
             }
             return;
         }
@@ -143,6 +160,23 @@ public class HologramCommand extends Command {
                         mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Video restarted"));
                     } else {
                         mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] No video hologram to restart"));
+                    }
+                    return;
+                }
+
+                if (args[1].equalsIgnoreCase("progress")) {
+                    if (hologramListener != null && hologramListener.hasVideoHologram()) {
+                        float progress = hologramListener.getVideoProgress();
+                        int filled = (int)(progress * 70);
+                        int empty = 70 - filled;
+                        StringBuilder bar = new StringBuilder("§7[§c");
+                        for (int i = 0; i < filled; i++) bar.append("|");
+                        bar.append("§f");
+                        for (int i = 0; i < empty; i++) bar.append("|");
+                        bar.append("§7]");
+                        mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] " + bar.toString()));
+                    } else {
+                        mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] No video hologram playing"));
                     }
                     return;
                 }

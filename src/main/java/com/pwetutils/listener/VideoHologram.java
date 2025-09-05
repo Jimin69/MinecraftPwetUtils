@@ -278,6 +278,13 @@ public class VideoHologram {
         }
     }
 
+    public float getProgress() {
+        if (!metadataLoaded || totalFrames == 0) return 0;
+        if (state == VideoState.END_SCREEN) return 1.0f;
+        if (state == VideoState.WAITING || state == VideoState.START_SCREEN) return 0;
+        return Math.min(1.0f, (float)currentFrame / totalFrames);
+    }
+
     public ResourceLocation getCurrentTexture() {
         if (!metadataLoaded || totalFrames == 0) {
             return null;

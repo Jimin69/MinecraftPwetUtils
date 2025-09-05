@@ -38,6 +38,13 @@ public class HologramImageListener {
         return false;
     }
 
+    public float getVideoProgress() {
+        if (currentVideoHologram != null) {
+            return currentVideoHologram.getProgress();
+        }
+        return 0;
+    }
+
     public boolean hasVideoHologram() {
         return currentVideoHologram != null;
     }
