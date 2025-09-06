@@ -21,8 +21,8 @@ public class VideoHologram {
     private static final CopyOnWriteArrayList<VideoHologram> activeInstances = new CopyOnWriteArrayList<>();
 
     private double x, y, z;
-    private final float width, height;
-    private final int sizeLevel;
+    private float width, height;
+    private int sizeLevel;
     private final Map<Integer, FrameData> frameCache = new HashMap<>();
     private final Map<Integer, CompletableFuture<Void>> loadingFrames = new HashMap<>();
     private DynamicTexture startScreenTexture = null;
@@ -136,6 +136,14 @@ public class VideoHologram {
                 audio.stop();
                 break;
         }
+    }
+
+    public void setSize(int newSize) {
+        if (newSize < 2 || newSize > 6) return;
+        this.sizeLevel = newSize;
+        float baseSize = 1.833f * sizeLevel;
+        this.width = baseSize;
+        this.height = baseSize * 0.6f;
     }
 
     public void pause() {

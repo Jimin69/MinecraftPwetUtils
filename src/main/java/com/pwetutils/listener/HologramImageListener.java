@@ -243,6 +243,14 @@ public class HologramImageListener {
         GlStateManager.popMatrix();
     }
 
+    public void cycleVideoSize() {
+        if (currentVideoHologram != null) {
+            int currentSize = currentVideoHologram.getSizeLevel();
+            int newSize = currentSize >= 6 ? 2 : currentSize + 1;
+            currentVideoHologram.setSize(newSize);
+        }
+    }
+
     public void clearHolograms() {
         holograms.clear();
         clearVideoHologram();

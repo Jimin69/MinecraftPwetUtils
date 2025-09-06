@@ -39,6 +39,15 @@ public class HologramCommand extends Command {
             return;
         }
 
+        if (args[0].equalsIgnoreCase("vcyclesize")) {
+            if (hologramListener != null && hologramListener.hasVideoHologram()) {
+                hologramListener.cycleVideoSize();
+                VideoHologram video = hologramListener.getCurrentVideoHologram();
+                mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Video size changed to " + video.getSizeLevel()));
+            }
+            return;
+        }
+
         if (args[0].equalsIgnoreCase("vpanel") || args[0].equalsIgnoreCase("videopanel")) {
             if (hologramListener != null && hologramListener.hasVideoHologram()) {
                 VideoHologram video = hologramListener.getCurrentVideoHologram();
@@ -53,12 +62,18 @@ public class HologramCommand extends Command {
                 float progress = video.getProgress();
                 float currentTime = duration * progress;
                 String pauseStatus = video.isPaused() ? "§cPaused" : "§aPlaying";
-                String timeText = String.format("%s §8| §f%s §7/ §f%s §8| §f%d",
-                        pauseStatus,
-                        formatTime(currentTime, duration),
-                        formatTime(duration, duration),
-                        video.getSizeLevel());
-                mc.thePlayer.addChatMessage(new ChatComponentText(timeText));
+
+                ChatComponentText statusLine = new ChatComponentText(pauseStatus + " §8| §f" +
+                        formatTime(currentTime, duration) + " §7/ §f" +
+                        formatTime(duration, duration) + " §8| ");
+
+                ChatComponentText sizeButton = new ChatComponentText("§f[SIZE: " + video.getSizeLevel() + "]");
+                sizeButton.setChatStyle(new ChatStyle()
+                        .setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ChatComponentText("§fClick to change size (cycles 2-6)")))
+                        .setChatClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/hologram vcyclesize")));
+
+                statusLine.appendSibling(sizeButton);
+                mc.thePlayer.addChatMessage(statusLine);
 
                 mc.thePlayer.addChatMessage(new ChatComponentText(""));
 
