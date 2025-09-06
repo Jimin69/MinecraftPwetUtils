@@ -20,9 +20,16 @@ public class HologramImageListener {
     private static final List<Hologram> holograms = new ArrayList<>();
     private static VideoHologram currentVideoHologram = null;
 
-    public void loadVideo(double x, double y, double z, int size, boolean transparent) {
+    public void loadVideo(double x, double y, double z, int size, VideoHologram.TransparencyMode transparencyMode) {
         clearVideoHologram();
-        currentVideoHologram = new VideoHologram(x, y, z, size, transparent);
+        currentVideoHologram = new VideoHologram(x, y, z, size, transparencyMode);
+    }
+
+    public void loadVideo(double x, double y, double z, int size, boolean transparent) {
+        VideoHologram.TransparencyMode mode = transparent ?
+                VideoHologram.TransparencyMode.TRANSPARENT :
+                VideoHologram.TransparencyMode.SOLID;
+        loadVideo(x, y, z, size, mode);
     }
 
     public void moveVideoHologramToPlayer() {
@@ -104,9 +111,9 @@ public class HologramImageListener {
             double y = currentVideoHologram.getY();
             double z = currentVideoHologram.getZ();
             int size = currentVideoHologram.getSizeLevel();
-            boolean transparent = currentVideoHologram.isTransparent();
+            VideoHologram.TransparencyMode transparencyMode = currentVideoHologram.getTransparencyMode();
             clearVideoHologram();
-            currentVideoHologram = new VideoHologram(x, y, z, size, transparent);
+            currentVideoHologram = new VideoHologram(x, y, z, size, transparencyMode);
         }
     }
 
@@ -178,7 +185,7 @@ public class HologramImageListener {
         GlStateManager.enableBlend();
         GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0);
         GlStateManager.enableTexture2D();
-        float alpha = video.isTransparent() ? 0.9F : 1.0F;
+        float alpha = video.getTransparencyMode().getAlpha();
         GlStateManager.color(1.0F, 1.0F, 1.0F, alpha);
         GlStateManager.depthMask(false);
 
@@ -243,11 +250,15 @@ public class HologramImageListener {
         GlStateManager.popMatrix();
     }
 
-    public void cycleVideoSize() {
+    public void cycleVideoSize(boolean forward) {
         if (currentVideoHologram != null) {
-            int currentSize = currentVideoHologram.getSizeLevel();
-            int newSize = currentSize >= 6 ? 2 : currentSize + 1;
-            currentVideoHologram.setSize(newSize);
+            currentVideoHologram.cycleSize(forward);
+        }
+    }
+
+    public void cycleVideoTransparency(boolean forward) {
+        if (currentVideoHologram != null) {
+            currentVideoHologram.cycleTransparency(forward);
         }
     }
 

@@ -23,17 +23,23 @@ public class HologramCommand extends Command {
     @Override
     public void handle(String[] args) {
         Minecraft mc = Minecraft.getMinecraft();
+        boolean silent = args.length > 0 && args[args.length - 1].equalsIgnoreCase("silent");
+        if (silent) {
+            String[] newArgs = new String[args.length - 1];
+            System.arraycopy(args, 0, newArgs, 0, args.length - 1);
+            args = newArgs;
+        }
 
         if (args.length == 0) {
-            mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Usage: /hologram <video|image|clear|vp|vr|vpr|vsf|vsb>"));
+            if (!silent) mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Usage: /hologram <video|image|clear|vp|vr|vpr|vsf|vsb>"));
             return;
         }
 
         if (args[0].equalsIgnoreCase("vmh") || (args[0].equalsIgnoreCase("video") && args.length >= 2 && args[1].equalsIgnoreCase("movehere"))) {
             if (hologramListener != null && hologramListener.hasVideoHologram()) {
                 hologramListener.moveVideoHologramToPlayer();
-                mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Video hologram moved to your location"));
-            } else {
+                if (!silent) mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Video hologram moved to your location"));
+            } else if (!silent) {
                 mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] No video hologram to move"));
             }
             return;
@@ -41,9 +47,25 @@ public class HologramCommand extends Command {
 
         if (args[0].equalsIgnoreCase("vcyclesize")) {
             if (hologramListener != null && hologramListener.hasVideoHologram()) {
-                hologramListener.cycleVideoSize();
-                VideoHologram video = hologramListener.getCurrentVideoHologram();
-                mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Video size changed to " + video.getSizeLevel()));
+                boolean forward = args.length < 2 || !args[1].equalsIgnoreCase("back");
+                hologramListener.cycleVideoSize(forward);
+                if (!silent) {
+                    VideoHologram video = hologramListener.getCurrentVideoHologram();
+                    mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Video size changed to " + video.getSizeLevel()));
+                }
+            }
+            return;
+        }
+
+        if (args[0].equalsIgnoreCase("vcycletrans") || args[0].equalsIgnoreCase("vct")) {
+            if (hologramListener != null && hologramListener.hasVideoHologram()) {
+                boolean forward = args.length < 2 || !args[1].equalsIgnoreCase("back");
+                hologramListener.cycleVideoTransparency(forward);
+                if (!silent) {
+                    VideoHologram video = hologramListener.getCurrentVideoHologram();
+                    String modeName = video.getTransparencyMode().name().toLowerCase();
+                    mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Video transparency changed to " + modeName));
+                }
             }
             return;
         }
@@ -119,7 +141,7 @@ public class HologramCommand extends Command {
                 recreateButton.setChatStyle(new ChatStyle()
                         .setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ChatComponentText("§fRecreate at this location")))
                         .setChatClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND,
-                                "/hologram video " + video.getSizeLevel() + " " + video.isTransparent())));
+                                "/hologram video " + video.getSizeLevel() + " " + video.getTransparencyMode().name().toLowerCase())));
 
                 line2.appendSibling(restartButton);
                 line2.appendSibling(new ChatComponentText(" "));
@@ -149,20 +171,10 @@ public class HologramCommand extends Command {
                 if (args.length >= 2) {
                     try {
                         skipSeconds = Integer.parseInt(args[1]);
-                        if (skipSeconds != 5 && skipSeconds != 10 && skipSeconds != 15 &&
-                                skipSeconds != 20 && skipSeconds != 30 && skipSeconds != 60) {
-                            mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Invalid skip duration. Use: 5, 10, 15, 20, 30, or 60"));
-                            return;
-                        }
-                    } catch (NumberFormatException e) {
-                        mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Invalid number format"));
-                        return;
-                    }
+                    } catch (NumberFormatException e) {}
                 }
                 hologramListener.skipForward(skipSeconds);
-                mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Skipped forward " + skipSeconds + " seconds"));
-            } else {
-                mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] No video hologram to skip"));
+                if (!silent) mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Skipped forward " + skipSeconds + " seconds"));
             }
             return;
         }
@@ -173,20 +185,10 @@ public class HologramCommand extends Command {
                 if (args.length >= 2) {
                     try {
                         skipSeconds = Integer.parseInt(args[1]);
-                        if (skipSeconds != 5 && skipSeconds != 10 && skipSeconds != 15 &&
-                                skipSeconds != 20 && skipSeconds != 30 && skipSeconds != 60) {
-                            mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Invalid skip duration. Use: 5, 10, 15, 20, 30, or 60"));
-                            return;
-                        }
-                    } catch (NumberFormatException e) {
-                        mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Invalid number format"));
-                        return;
-                    }
+                    } catch (NumberFormatException e) {}
                 }
                 hologramListener.skipBackward(skipSeconds);
-                mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Skipped backward " + skipSeconds + " seconds"));
-            } else {
-                mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] No video hologram to skip"));
+                if (!silent) mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Skipped backward " + skipSeconds + " seconds"));
             }
             return;
         }
@@ -253,21 +255,21 @@ public class HologramCommand extends Command {
             return;
         }
 
-        if (args[0].equalsIgnoreCase("vp")) {
+        if (args[0].equalsIgnoreCase("vp") || args[0].equalsIgnoreCase("video") && args.length >= 2 && args[1].equalsIgnoreCase("pause")) {
             if (hologramListener != null && hologramListener.hasVideoHologram()) {
                 boolean paused = hologramListener.togglePauseVideo();
-                mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Video " + (paused ? "paused" : "resumed")));
-            } else {
+                if (!silent) mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Video " + (paused ? "paused" : "resumed")));
+            } else if (!silent) {
                 mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] No video hologram to pause"));
             }
             return;
         }
 
-        if (args[0].equalsIgnoreCase("vr")) {
+        if (args[0].equalsIgnoreCase("vr") || args[0].equalsIgnoreCase("video") && args.length >= 2 && args[1].equalsIgnoreCase("restart")) {
             if (hologramListener != null && hologramListener.hasVideoHologram()) {
                 hologramListener.restartVideo();
-                mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Video restarted"));
-            } else {
+                if (!silent) mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Video restarted"));
+            } else if (!silent) {
                 mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] No video hologram to restart"));
             }
             return;
@@ -405,27 +407,24 @@ public class HologramCommand extends Command {
             }
 
             int size = 4;
-            boolean transparent = false;
+            VideoHologram.TransparencyMode transparencyMode = VideoHologram.TransparencyMode.SOLID;
 
             if (args.length >= 2) {
                 try {
                     size = Integer.parseInt(args[1]);
                     if (size < 2 || size > 6) {
-                        mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Size must be between 2 and 6"));
+                        if (!silent) mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Size must be between 2 and 6"));
                         return;
                     }
-                } catch (NumberFormatException e) {
-                    mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Invalid size. Usage: /hologram video [2-6] [true/false]"));
-                    return;
-                }
+                } catch (NumberFormatException e) {}
             }
 
             if (args.length >= 3) {
-                if (args[2].equalsIgnoreCase("true")) {
-                    transparent = true;
-                } else if (!args[2].equalsIgnoreCase("false")) {
-                    mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Transparency must be true or false"));
-                    return;
+                String mode = args[2].toLowerCase();
+                if (mode.equals("transparent")) {
+                    transparencyMode = VideoHologram.TransparencyMode.TRANSPARENT;
+                } else if (mode.equals("idle")) {
+                    transparencyMode = VideoHologram.TransparencyMode.IDLE;
                 }
             }
 
@@ -434,9 +433,11 @@ public class HologramCommand extends Command {
                 double yOffset = size >= 6 ? 1.5 : size >= 5 ? 1.0 : size >= 4 ? 0.5 : 0;
                 double y = mc.thePlayer.posY + 2.0 + yOffset;
                 double z = mc.thePlayer.posZ;
-                hologramListener.loadVideo(x, y, z, size, transparent);
-                String transparencyText = transparent ? " transparent" : " solid";
-                mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Creating" + transparencyText + " video hologram (size " + size + ")..."));
+                hologramListener.loadVideo(x, y, z, size, transparencyMode);
+                if (!silent) {
+                    String transparencyText = transparencyMode.name().toLowerCase();
+                    mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Creating " + transparencyText + " video hologram (size " + size + ")..."));
+                }
             }
             return;
         }

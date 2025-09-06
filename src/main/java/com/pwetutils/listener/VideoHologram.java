@@ -38,7 +38,7 @@ public class VideoHologram {
     private boolean metadataLoaded = false;
     private long creationTime;
     private boolean paused = false;
-    private final boolean transparent;
+    private TransparencyMode transparencyMode;
     private VideoHologramAudio audio;
 
     private static class FrameData {
@@ -97,7 +97,7 @@ public class VideoHologram {
         globalMonitor.start();
     }
 
-    public VideoHologram(double x, double y, double z, int sizeLevel, boolean transparent) {
+    public VideoHologram(double x, double y, double z, int sizeLevel, TransparencyMode transparencyMode) {
         this.x = x;
         this.y = y;
         this.z = z;
@@ -105,12 +105,36 @@ public class VideoHologram {
         float baseSize = 1.833f * sizeLevel;
         this.width = baseSize;
         this.height = baseSize * 0.6f;
-        this.transparent = transparent;
+        this.transparencyMode = transparencyMode;
         this.creationTime = System.currentTimeMillis();
         activeInstances.add(this);
         loadScreens();
         loadMetadata();
         this.audio = new VideoHologramAudio(x, y, z);
+    }
+
+    public TransparencyMode getTransparencyMode() {
+        return transparencyMode;
+    }
+
+    public void setTransparencyMode(TransparencyMode mode) {
+        this.transparencyMode = mode;
+    }
+
+    public void cycleTransparency(boolean forward) {
+        transparencyMode = forward ? transparencyMode.next() : transparencyMode.previous();
+    }
+
+    // Add method to cycle size with direction:
+    public void cycleSize(boolean forward) {
+        if (forward) {
+            sizeLevel = sizeLevel >= 6 ? 2 : sizeLevel + 1;
+        } else {
+            sizeLevel = sizeLevel <= 2 ? 6 : sizeLevel - 1;
+        }
+        float baseSize = 1.833f * sizeLevel;
+        this.width = baseSize;
+        this.height = baseSize * 0.6f;
     }
 
     public void moveTo(double newX, double newY, double newZ) {
@@ -162,7 +186,7 @@ public class VideoHologram {
     }
 
     public boolean isTransparent() {
-        return transparent;
+        return transparencyMode != TransparencyMode.SOLID;
     }
 
     public int getSizeLevel() {
@@ -463,6 +487,30 @@ public class VideoHologram {
 
             default:
                 return null;
+        }
+    }
+
+    public enum TransparencyMode {
+        SOLID(1.0f),
+        TRANSPARENT(0.9f),
+        IDLE(0.3f);
+
+        private final float alpha;
+
+        TransparencyMode(float alpha) {
+            this.alpha = alpha;
+        }
+
+        public float getAlpha() {
+            return alpha;
+        }
+
+        public TransparencyMode next() {
+            return values()[(ordinal() + 1) % values().length];
+        }
+
+        public TransparencyMode previous() {
+            return values()[(ordinal() - 1 + values().length) % values().length];
         }
     }
 
