@@ -1,5 +1,3 @@
-// VideoControlPanelListener.java - Complete replacement
-
 package com.pwetutils.listener;
 
 import com.pwetutils.command.HologramCommand;
@@ -29,10 +27,9 @@ public class VideoControlPanelListener {
     private static final long DOUBLE_CLICK_TIME = 500;
 
     public VideoControlPanelListener() {
-        // Static buttons only - we'll get hologramListener through the static reference
+        // Static buttons only - progress bar is now dynamic
         staticButtons.add(new ControlButton("§7< H", 2, 0, 0, ButtonType.COLLAPSE, null));
         staticButtons.add(new ControlButton("§7/ ]", 2, 0, 0, ButtonType.BORDER, null));
-        staticButtons.add(new ControlButton("§f00:24 §c|||||||||||||||||||||||||||||||||||||||§7||||||||||||||||||||| §f12:05", 24, 185, 0, ButtonType.PROGRESS, "/hologram vpr silent"));
         staticButtons.add(new ControlButton("§7[", 214, 0, 0, ButtonType.BORDER, null));
         staticButtons.add(new ControlButton("§7\\ ]", 2, 0, 1, ButtonType.BORDER, null));
         staticButtons.add(new ControlButton("§7A", 24, 10, 1, ButtonType.NORMAL, null));
@@ -40,7 +37,6 @@ public class VideoControlPanelListener {
     }
 
     private HologramImageListener getHologramListener() {
-        // Access through the static field set in HologramCommand
         try {
             java.lang.reflect.Field field = HologramCommand.class.getDeclaredField("hologramListener");
             field.setAccessible(true);
@@ -53,6 +49,10 @@ public class VideoControlPanelListener {
     private List<ControlButton> getDynamicButtons() {
         List<ControlButton> buttons = new ArrayList<>(staticButtons);
         HologramImageListener hologramListener = getHologramListener();
+
+        // Dynamic progress bar
+        String progressBarText = buildProgressBar(hologramListener);
+        buttons.add(new ControlButton(progressBarText, 24, 185, 0, ButtonType.PROGRESS, "/hologram vpr silent"));
 
         // Size button - dynamic symbol
         String sizeSymbol = "§7➍";
@@ -98,6 +98,47 @@ public class VideoControlPanelListener {
         buttons.add(new ControlButton("§7§l⬇", 194, 15, 1, ButtonType.DOUBLE_CLICK, "/hologram vmh silent"));
 
         return buttons;
+    }
+
+    private String buildProgressBar(HologramImageListener hologramListener) {
+        if (hologramListener == null || !hologramListener.hasVideoHologram()) {
+            // Default when no video
+            StringBuilder bar = new StringBuilder();
+            for (int i = 0; i < 60; i++) {
+                bar.append("§7|");
+            }
+            return "§f0:00 " + bar.toString() + " §f0:00";
+        }
+
+        VideoHologram video = hologramListener.getCurrentVideoHologram();
+        float progress = video.getProgress();
+        float duration = video.getDuration();
+        float currentTime = duration * progress;
+
+        // Build the bar with 60 segments
+        StringBuilder bar = new StringBuilder();
+        int progressedBars = (int)(progress * 60);
+
+        for (int i = 0; i < 60; i++) {
+            if (i < progressedBars) {
+                bar.append("§c|");
+            } else {
+                bar.append("§7|");
+            }
+        }
+
+        // Format times
+        String currentTimeStr = formatTime(currentTime);
+        String durationStr = formatTime(duration);
+
+        return "§f" + currentTimeStr + " " + bar.toString() + " §f" + durationStr;
+    }
+
+    private String formatTime(float seconds) {
+        int totalSec = (int)seconds;
+        int minutes = totalSec / 60;
+        int secs = totalSec % 60;
+        return String.format("%d:%02d", minutes, secs);
     }
 
     @SubscribeEvent
@@ -153,24 +194,19 @@ public class VideoControlPanelListener {
                             panelExpanded = false;
                             break;
                         } else if (button.type == ButtonType.DOUBLE_CLICK && button.command != null) {
-                            // Handle double-click buttons
                             long currentTime = System.currentTimeMillis();
                             Long lastClick = firstClickTime.get(button.command);
 
                             if (lastClick != null && currentTime - lastClick < DOUBLE_CLICK_TIME) {
-                                // Double click detected - execute command
                                 clickAnimations.put(button.command, currentTime);
                                 mc.thePlayer.sendChatMessage(button.command);
                                 firstClickTime.remove(button.command);
                             } else {
-                                // First click - store time
                                 firstClickTime.put(button.command, currentTime);
-                                // Add a visual indicator for first click
                                 clickAnimations.put(button.command + "_pending", currentTime);
                             }
                             break;
                         } else if (button.command != null) {
-                            // Normal single-click buttons
                             if (button.type != ButtonType.PROGRESS && button.row == 1) {
                                 clickAnimations.put(button.command, System.currentTimeMillis());
                             }
@@ -273,10 +309,8 @@ public class VideoControlPanelListener {
         } else if (button.type == ButtonType.BORDER && hovering) {
             displayText = displayText.replaceFirst("§.", "§f");
         } else if (isPending) {
-            // Show orange/amber color for pending double-click
             displayText = displayText.replaceFirst("§.", "§6");
         } else if (isClicked && button.row == 1 && button.type != ButtonType.BORDER) {
-            // Make text yellow when clicked
             displayText = displayText.replaceFirst("§.", "§e");
         }
 
