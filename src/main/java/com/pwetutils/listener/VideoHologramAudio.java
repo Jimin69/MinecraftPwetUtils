@@ -20,7 +20,7 @@ public class VideoHologramAudio {
     private static final int NUM_BUFFERS = 4;
     private static final int FADE_SAMPLES = 128;
 
-    private final double x, y, z;
+    private double x, y, z;
     private int source;
     private final Queue<Integer> availableBuffers = new LinkedList<>();
     private final Queue<Integer> queuedBuffers = new LinkedList<>();
@@ -345,6 +345,13 @@ public class VideoHologramAudio {
             }
         });
         streamThread.start();
+    }
+
+    public void updatePosition(double newX, double newY, double newZ) {
+        this.x = newX;
+        this.y = newY;
+        this.z = newZ;
+        AL10.alSource3f(source, AL10.AL_POSITION, (float)newX, (float)newY, (float)newZ);
     }
 
     public void restart() {

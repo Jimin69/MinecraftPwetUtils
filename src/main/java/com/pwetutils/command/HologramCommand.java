@@ -1,6 +1,7 @@
 package com.pwetutils.command;
 
 import com.pwetutils.listener.HologramImageListener;
+import com.pwetutils.listener.VideoHologram;
 import net.weavemc.loader.api.command.Command;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.ChatComponentText;
@@ -25,6 +26,105 @@ public class HologramCommand extends Command {
 
         if (args.length == 0) {
             mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Usage: /hologram <video|image|clear|vp|vr|vpr|vsf|vsb>"));
+            return;
+        }
+
+        if (args[0].equalsIgnoreCase("vmh") || (args[0].equalsIgnoreCase("video") && args.length >= 2 && args[1].equalsIgnoreCase("movehere"))) {
+            if (hologramListener != null && hologramListener.hasVideoHologram()) {
+                hologramListener.moveVideoHologramToPlayer();
+                mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Video hologram moved to your location"));
+            } else {
+                mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] No video hologram to move"));
+            }
+            return;
+        }
+
+        if (args[0].equalsIgnoreCase("vpanel") || args[0].equalsIgnoreCase("videopanel")) {
+            if (hologramListener != null && hologramListener.hasVideoHologram()) {
+                VideoHologram video = hologramListener.getCurrentVideoHologram();
+                if (video == null) {
+                    mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] No video hologram active"));
+                    return;
+                }
+
+                mc.thePlayer.addChatMessage(new ChatComponentText("§6----------------------------------------------"));
+
+                float duration = video.getDuration();
+                float progress = video.getProgress();
+                float currentTime = duration * progress;
+                String pauseStatus = video.isPaused() ? "§cPaused" : "§aPlaying";
+                String timeText = String.format("%s §8| §f%s §7/ §f%s §8| §f%d",
+                        pauseStatus,
+                        formatTime(currentTime, duration),
+                        formatTime(duration, duration),
+                        video.getSizeLevel());
+                mc.thePlayer.addChatMessage(new ChatComponentText(timeText));
+
+                mc.thePlayer.addChatMessage(new ChatComponentText(""));
+
+                ChatComponentText line1 = new ChatComponentText("");
+
+                ChatComponentText skip5Back = new ChatComponentText("§7[§c<< 5§7]");
+                skip5Back.setChatStyle(new ChatStyle()
+                        .setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ChatComponentText("§fSkip backward 5 seconds")))
+                        .setChatClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/hologram vsb 5")));
+
+                ChatComponentText pauseButton = new ChatComponentText(video.isPaused() ? "§7[§9RESUME§7]" : "§7[§9PAUSE§7]");
+                pauseButton.setChatStyle(new ChatStyle()
+                        .setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ChatComponentText("§fToggle pause/play")))
+                        .setChatClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/hologram vp")));
+
+                ChatComponentText skip5Forward = new ChatComponentText("§7[§a5 >>§7]");
+                skip5Forward.setChatStyle(new ChatStyle()
+                        .setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ChatComponentText("§fSkip forward 5 seconds")))
+                        .setChatClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/hologram vsf 5")));
+
+                line1.appendSibling(skip5Back);
+                line1.appendSibling(new ChatComponentText("   "));
+                line1.appendSibling(pauseButton);
+                line1.appendSibling(new ChatComponentText("   "));
+                line1.appendSibling(skip5Forward);
+                mc.thePlayer.addChatMessage(line1);
+
+                mc.thePlayer.addChatMessage(new ChatComponentText(""));
+
+                ChatComponentText line2 = new ChatComponentText("");
+
+                ChatComponentText restartButton = new ChatComponentText("§1[Restart]");
+                restartButton.setChatStyle(new ChatStyle()
+                        .setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ChatComponentText("§fRestart video from beginning")))
+                        .setChatClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/hologram vr")));
+
+                ChatComponentText deleteButton = new ChatComponentText("§4[Delete]");
+                deleteButton.setChatStyle(new ChatStyle()
+                        .setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ChatComponentText("§fDelete the hologram")))
+                        .setChatClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/hologram video delete")));
+
+                ChatComponentText recreateButton = new ChatComponentText("§5[Recreate]");
+                recreateButton.setChatStyle(new ChatStyle()
+                        .setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ChatComponentText("§fRecreate at this location")))
+                        .setChatClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND,
+                                "/hologram video " + video.getSizeLevel() + " " + video.isTransparent())));
+
+                line2.appendSibling(restartButton);
+                line2.appendSibling(new ChatComponentText(" "));
+                line2.appendSibling(deleteButton);
+                line2.appendSibling(new ChatComponentText(" "));
+                line2.appendSibling(recreateButton);
+                mc.thePlayer.addChatMessage(line2);
+
+                mc.thePlayer.addChatMessage(new ChatComponentText(""));
+
+                ChatComponentText moveButton = new ChatComponentText("§e[MOVE HERE]");
+                moveButton.setChatStyle(new ChatStyle()
+                        .setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ChatComponentText("§fMove hologram to your location")))
+                        .setChatClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/hologram vmh")));
+                mc.thePlayer.addChatMessage(moveButton);
+
+                mc.thePlayer.addChatMessage(new ChatComponentText("§6----------------------------------------------"));
+            } else {
+                mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] No video hologram active"));
+            }
             return;
         }
 

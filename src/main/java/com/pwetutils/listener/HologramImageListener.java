@@ -25,6 +25,22 @@ public class HologramImageListener {
         currentVideoHologram = new VideoHologram(x, y, z, size, transparent);
     }
 
+    public void moveVideoHologramToPlayer() {
+        if (currentVideoHologram != null) {
+            Minecraft mc = Minecraft.getMinecraft();
+            if (mc.thePlayer != null) {
+                double x = mc.thePlayer.posX;
+                double y = mc.thePlayer.posY + 2.0;
+                double z = mc.thePlayer.posZ;
+                int sizeLevel = currentVideoHologram.getSizeLevel();
+                if (sizeLevel >= 6) y += 1.5;
+                else if (sizeLevel >= 5) y += 1.0;
+                else if (sizeLevel >= 4) y += 0.5;
+                currentVideoHologram.moveTo(x, y, z);
+            }
+        }
+    }
+
     public boolean togglePauseVideo() {
         if (currentVideoHologram != null) {
             if (currentVideoHologram.isPaused()) {
@@ -92,6 +108,10 @@ public class HologramImageListener {
             clearVideoHologram();
             currentVideoHologram = new VideoHologram(x, y, z, size, transparent);
         }
+    }
+
+    public VideoHologram getCurrentVideoHologram() {
+        return currentVideoHologram;
     }
 
     public void clearVideoHologram() {

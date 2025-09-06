@@ -20,7 +20,7 @@ public class VideoHologram {
 
     private static final CopyOnWriteArrayList<VideoHologram> activeInstances = new CopyOnWriteArrayList<>();
 
-    private final double x, y, z;
+    private double x, y, z;
     private final float width, height;
     private final int sizeLevel;
     private final Map<Integer, FrameData> frameCache = new HashMap<>();
@@ -70,7 +70,6 @@ public class VideoHologram {
                     boolean worldExists = mc != null && mc.theWorld != null;
 
                     if (!worldExists && lastWorldState) {
-                        // world became null - pause all videos
                         for (VideoHologram instance : activeInstances) {
                             if (!instance.paused) {
                                 instance.paused = true;
@@ -78,12 +77,10 @@ public class VideoHologram {
                                     instance.audio.pause();
                                 }
                             }
-                            // reset time to prevent jumping when resumed
                             instance.lastFrameTime = System.currentTimeMillis();
                         }
 
                     } else if (worldExists && !lastWorldState) {
-                        // world restored - keep videos paused but reset timing
                         for (VideoHologram instance : activeInstances) {
                             instance.lastFrameTime = System.currentTimeMillis();
                         }
@@ -116,6 +113,15 @@ public class VideoHologram {
         this.audio = new VideoHologramAudio(x, y, z);
     }
 
+    public void moveTo(double newX, double newY, double newZ) {
+        this.x = newX;
+        this.y = newY;
+        this.z = newZ;
+        if (audio != null) {
+            audio.updatePosition(newX, newY, newZ);
+        }
+    }
+
     private void updateAudioState() {
         if (audio == null) return;
 
@@ -139,7 +145,7 @@ public class VideoHologram {
 
     public void resume() {
         paused = false;
-        lastFrameTime = System.currentTimeMillis(); // reset time to prevent jump
+        lastFrameTime = System.currentTimeMillis();
         if (audio != null) audio.resume();
     }
 
@@ -419,7 +425,7 @@ public class VideoHologram {
                         cleanupFrames(currentFrame);
                     }
                 } else if (paused) {
-                    lastFrameTime = now; // keep updating time while paused to prevent jump
+                    lastFrameTime = now;
                 }
 
                 for (int i = currentFrame; i >= Math.max(1, currentFrame - FRAMES_BEHIND); i--) {
