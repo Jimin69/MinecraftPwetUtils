@@ -8,6 +8,7 @@ import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiChat;
 import net.minecraft.client.gui.ScaledResolution;
 import org.lwjgl.input.Mouse;
+import org.lwjgl.input.Keyboard;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -68,7 +69,8 @@ public class VideoControlPanelListener {
         }
         buttons.add(new ControlButton(sizeSymbol, 39, 10, 1, ButtonType.SIZE, "/hologram vcyclesize silent"));
 
-        buttons.add(new ControlButton("§f⫸", 54, 35, 1, ButtonType.NORMAL, "/hologram vsf 5 silent"));
+        // Skip forward button with special type
+        buttons.add(new ControlButton("§f⫸", 54, 35, 1, ButtonType.SKIP_FORWARD, "/hologram vsf"));
 
         // Pause button - dynamic symbol
         String pauseSymbol = "§f┃┃";
@@ -81,7 +83,9 @@ public class VideoControlPanelListener {
         buttons.add(new ControlButton(pauseSymbol, 94, 15, 1, ButtonType.PAUSE, "/hologram vp silent"));
 
         buttons.add(new ControlButton("§f⏎", 114, 15, 1, ButtonType.DOUBLE_CLICK, "/hologram vr silent"));
-        buttons.add(new ControlButton("§f⫷", 134, 35, 1, ButtonType.NORMAL, "/hologram vsb 5 silent"));
+
+        // Skip backward button with special type
+        buttons.add(new ControlButton("§f⫷", 134, 35, 1, ButtonType.SKIP_BACKWARD, "/hologram vsb"));
 
         // Transparency button - dynamic symbol
         String transSymbol = "§7①";
@@ -154,6 +158,7 @@ public class VideoControlPanelListener {
         int mouseY = sr.getScaledHeight() - Mouse.getY() * sr.getScaledHeight() / mc.displayHeight - 1;
         boolean mouseDown = Mouse.isButtonDown(0);
         boolean rightMouseDown = Mouse.isButtonDown(1);
+        boolean shiftHeld = Keyboard.isKeyDown(Keyboard.KEY_LSHIFT) || Keyboard.isKeyDown(Keyboard.KEY_RSHIFT);
 
         List<ControlButton> buttons = getDynamicButtons();
 
@@ -192,6 +197,18 @@ public class VideoControlPanelListener {
                     if (button.type != ButtonType.COLLAPSE && isHovering(button, rightEdge, baseY, mouseX, mouseY, mc)) {
                         if (button.type == ButtonType.BORDER) {
                             panelExpanded = false;
+                            break;
+                        } else if (button.type == ButtonType.SKIP_FORWARD) {
+                            // Handle skip forward with shift modifier
+                            clickAnimations.put(button.command, System.currentTimeMillis());
+                            int skipAmount = shiftHeld ? 10 : 5;
+                            mc.thePlayer.sendChatMessage(button.command + " " + skipAmount + " silent");
+                            break;
+                        } else if (button.type == ButtonType.SKIP_BACKWARD) {
+                            // Handle skip backward with shift modifier
+                            clickAnimations.put(button.command, System.currentTimeMillis());
+                            int skipAmount = shiftHeld ? 10 : 5;
+                            mc.thePlayer.sendChatMessage(button.command + " " + skipAmount + " silent");
                             break;
                         } else if (button.type == ButtonType.DOUBLE_CLICK && button.command != null) {
                             long currentTime = System.currentTimeMillis();
@@ -238,7 +255,7 @@ public class VideoControlPanelListener {
         // Render buttons
         for (ControlButton button : buttons) {
             if (shouldRenderButton(button)) {
-                renderButton(mc, button, rightEdge, baseY, mouseX, mouseY, anyBorderHovered);
+                renderButton(mc, button, rightEdge, baseY, mouseX, mouseY, anyBorderHovered, shiftHeld);
             }
         }
 
@@ -271,9 +288,18 @@ public class VideoControlPanelListener {
                 mouseY <= y + height + padding;
     }
 
-    private void renderButton(Minecraft mc, ControlButton button, int rightEdge, int baseY, int mouseX, int mouseY, boolean anyBorderHovered) {
+    private void renderButton(Minecraft mc, ControlButton button, int rightEdge, int baseY, int mouseX, int mouseY, boolean anyBorderHovered, boolean shiftHeld) {
         int padding = 2;
-        int textWidth = mc.fontRendererObj.getStringWidth(button.text);
+        String displayText = button.text;
+
+        // Modify display text for skip buttons when shift is held
+        if (shiftHeld && button.type == ButtonType.SKIP_FORWARD) {
+            displayText = "§e⫸⫸";  // Double arrow or different color to indicate 10s
+        } else if (shiftHeld && button.type == ButtonType.SKIP_BACKWARD) {
+            displayText = "§e⫷⫷";  // Double arrow or different color to indicate 10s
+        }
+
+        int textWidth = mc.fontRendererObj.getStringWidth(displayText);
         int boxWidth = button.width == 0 ? textWidth + padding * 2 : button.width;
         int height = mc.fontRendererObj.FONT_HEIGHT;
 
@@ -297,8 +323,6 @@ public class VideoControlPanelListener {
                 x + boxWidth + padding, y + height + padding,
                 isPending ? 0x60FFFF00 : (hovering ? 0x40FFFFFF : 0x80000000));
 
-        String displayText = button.text;
-
         // Check for click animation
         boolean isClicked = clickAnimations.containsKey(button.command) ||
                 clickAnimations.containsKey(button.command + "_right") ||
@@ -311,10 +335,13 @@ public class VideoControlPanelListener {
         } else if (isPending) {
             displayText = displayText.replaceFirst("§.", "§6");
         } else if (isClicked && button.row == 1 && button.type != ButtonType.BORDER) {
-            displayText = displayText.replaceFirst("§.", "§e");
+            // Keep the yellow color for shift-held skip buttons when clicked
+            if (!shiftHeld || (button.type != ButtonType.SKIP_FORWARD && button.type != ButtonType.SKIP_BACKWARD)) {
+                displayText = displayText.replaceFirst("§.", "§e");
+            }
         }
 
-        int textX = x + (boxWidth - textWidth) / 2;
+        int textX = x + (boxWidth - mc.fontRendererObj.getStringWidth(displayText)) / 2;
         mc.fontRendererObj.drawStringWithShadow(displayText, textX, y, 0xFFFFFF);
     }
 
@@ -326,7 +353,9 @@ public class VideoControlPanelListener {
         TRANSPARENCY,
         PAUSE,
         PROGRESS,
-        DOUBLE_CLICK
+        DOUBLE_CLICK,
+        SKIP_FORWARD,
+        SKIP_BACKWARD
     }
 
     private static class ControlButton {
