@@ -32,10 +32,11 @@ public class VideoControlPanelListener {
     private static final long TOGGLE_ANIMATION_INTERVAL = 500;
     private float lastPlayerHealth = -1;
     private long greenFlashStartTime = 0;
+    private long redFlashStartTime = 0;
     private static final long GREEN_FLASH_DURATION = 3000;
+    private static final long RED_FLASH_DURATION = 3000;
 
     public VideoControlPanelListener() {
-        // Static buttons only - A button is now dynamic
         staticButtons.add(new ControlButton("§7< H", 2, 0, 0, ButtonType.COLLAPSE, null));
         staticButtons.add(new ControlButton("§7/ ]", 2, 0, 0, ButtonType.BORDER, null));
         staticButtons.add(new ControlButton("§7[", 214, 0, 0, ButtonType.BORDER, null));
@@ -107,10 +108,12 @@ public class VideoControlPanelListener {
         // Skip forward button with special type
         buttons.add(new ControlButton("§f⫸", 54, 35, 1, ButtonType.SKIP_FORWARD, "/hologram vsf"));
 
-        // Pause button - dynamic symbol with green flash
+        // Pause button - dynamic symbol with flash animations
         String pauseSymbol = "§f┃┃";
+        boolean inRedFlash = (currentTime - redFlashStartTime < RED_FLASH_DURATION);
+
         if (inGreenFlash) {
-            // Green flash for pause button
+            // Green flash for pause button (when resuming)
             boolean useLight = (currentTime / TOGGLE_ANIMATION_INTERVAL) % 2 == 0;
             String greenColor = useLight ? "§a" : "§2";
             if (hologramListener != null && hologramListener.hasVideoHologram()) {
@@ -118,6 +121,16 @@ public class VideoControlPanelListener {
                 pauseSymbol = video.isPaused() ? greenColor + "§l⫸" : greenColor + "┃┃";
             } else {
                 pauseSymbol = greenColor + "┃┃";
+            }
+        } else if (inRedFlash) {
+            // Red flash for pause button (when damaged)
+            boolean useLight = (currentTime / TOGGLE_ANIMATION_INTERVAL) % 2 == 0;
+            String redColor = useLight ? "§c" : "§4";
+            if (hologramListener != null && hologramListener.hasVideoHologram()) {
+                VideoHologram video = hologramListener.getCurrentVideoHologram();
+                pauseSymbol = video.isPaused() ? redColor + "§l⫸" : redColor + "┃┃";
+            } else {
+                pauseSymbol = redColor + "┃┃";
             }
         } else if (hologramListener != null && hologramListener.hasVideoHologram()) {
             VideoHologram video = hologramListener.getCurrentVideoHologram();
@@ -132,10 +145,10 @@ public class VideoControlPanelListener {
         // Skip backward button with special type
         buttons.add(new ControlButton("§f⫷", 134, 35, 1, ButtonType.SKIP_BACKWARD, "/hologram vsb"));
 
-        // Transparency button - dynamic symbol with green flash
+        // Transparency button - dynamic symbol with flash animations
         String transSymbol = "§7①";
         if (inGreenFlash) {
-            // Green flash for transparency button
+            // Green flash for transparency button (when resuming)
             boolean useLight = (currentTime / TOGGLE_ANIMATION_INTERVAL) % 2 == 0;
             String greenColor = useLight ? "§a" : "§2";
             if (hologramListener != null && hologramListener.hasVideoHologram()) {
@@ -147,6 +160,20 @@ public class VideoControlPanelListener {
                 }
             } else {
                 transSymbol = greenColor + "①";
+            }
+        } else if (inRedFlash) {
+            // Red flash for transparency button (when damaged)
+            boolean useLight = (currentTime / TOGGLE_ANIMATION_INTERVAL) % 2 == 0;
+            String redColor = useLight ? "§c" : "§4";
+            if (hologramListener != null && hologramListener.hasVideoHologram()) {
+                VideoHologram video = hologramListener.getCurrentVideoHologram();
+                switch (video.getTransparencyMode()) {
+                    case SOLID: transSymbol = redColor + "①"; break;
+                    case TRANSPARENT: transSymbol = redColor + "②"; break;
+                    case IDLE: transSymbol = redColor + "③"; break;
+                }
+            } else {
+                transSymbol = redColor + "①";
             }
         } else if (hologramListener != null && hologramListener.hasVideoHologram()) {
             VideoHologram video = hologramListener.getCurrentVideoHologram();
@@ -232,6 +259,8 @@ public class VideoControlPanelListener {
                     video.pause();
                     // Set transparency to IDLE
                     video.setTransparencyMode(VideoHologram.TransparencyMode.IDLE);
+                    // Start red flash animation
+                    redFlashStartTime = System.currentTimeMillis();
                 }
             }
         }
@@ -362,7 +391,7 @@ public class VideoControlPanelListener {
             }
         }
 
-        // Handle right clicks for size and transparency
+        // handle right clicks for size and transparency
         if (rightMouseDown && !wasRightMouseDown && panelExpanded) {
             for (ControlButton button : buttons) {
                 if (isHovering(button, rightEdge, baseY, mouseX, mouseY, mc)) {
@@ -379,7 +408,7 @@ public class VideoControlPanelListener {
             }
         }
 
-        // Render buttons
+        // render buttons
         for (ControlButton button : buttons) {
             if (shouldRenderButton(button)) {
                 renderButton(mc, button, rightEdge, baseY, mouseX, mouseY, anyBorderHovered, shiftHeld);
@@ -419,7 +448,7 @@ public class VideoControlPanelListener {
         int padding = 2;
         String displayText = button.text;
 
-        // Modify display text for skip buttons when shift is held - keep white color
+        // modify display text for skip buttons when shift is held - keep white color
         if (shiftHeld && button.type == ButtonType.SKIP_FORWARD) {
             displayText = "§f⫸⫸";  // Double arrow in white
         } else if (shiftHeld && button.type == ButtonType.SKIP_BACKWARD) {
@@ -442,7 +471,7 @@ public class VideoControlPanelListener {
             hovering = anyBorderHovered;
         }
 
-        // Check if this button has a pending double-click
+        // check if this button has a pending double-click
         boolean isPending = button.type == ButtonType.DOUBLE_CLICK &&
                 firstClickTime.containsKey(button.command);
 
@@ -450,13 +479,13 @@ public class VideoControlPanelListener {
                 x + boxWidth + padding, y + height + padding,
                 isPending ? 0x60FFFF00 : (hovering ? 0x40FFFFFF : 0x80000000));
 
-        // Check for click animation
+        // check for click animation
         boolean isClicked = clickAnimations.containsKey(button.command) ||
                 clickAnimations.containsKey(button.command + "_right") ||
                 clickAnimations.containsKey(button.command + "_pending");
 
         if (button.type == ButtonType.COLLAPSE && hovering) {
-            // Don't change color if it's showing error
+            // con't change color if it's showing error
             if (!displayText.startsWith("§c")) {
                 displayText = displayText.replace("§7<", "§f<");
             }
@@ -467,7 +496,7 @@ public class VideoControlPanelListener {
         } else if (isClicked && button.row == 1 && button.type != ButtonType.BORDER && button.type != ButtonType.TOGGLE) {
             displayText = displayText.replaceFirst("§.", "§e");
         }
-        // Toggle button doesn't change color on click since it has its own animation
+        // toggle button doesn't change color on click since it has its own animation
 
         int textX = x + (boxWidth - mc.fontRendererObj.getStringWidth(displayText)) / 2;
         mc.fontRendererObj.drawStringWithShadow(displayText, textX, y, 0xFFFFFF);
