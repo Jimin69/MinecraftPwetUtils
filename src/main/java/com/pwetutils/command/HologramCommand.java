@@ -35,6 +35,34 @@ public class HologramCommand extends Command {
             return;
         }
 
+        // add this with the other shorthand commands at the beginning of handle()
+        if (args[0].equalsIgnoreCase("vmc")) {  // "video move closer"
+            if (hologramListener != null && hologramListener.hasVideoHologram()) {
+                VideoHologram video = hologramListener.getCurrentVideoHologram();
+
+                // get player's look direction (horizontal only)
+                float yaw = mc.thePlayer.rotationYaw;
+                double radYaw = Math.toRadians(yaw);
+
+                // calculate direction vector (what player is looking at)
+                double lookX = -Math.sin(radYaw);
+                double lookZ = Math.cos(radYaw);
+
+                // move hologram 0.5 blocks OPPOSITE to look direction (towards player)
+                double newX = video.getX() - (lookX * 0.5);
+                double newZ = video.getZ() - (lookZ * 0.5);
+
+                video.moveTo(newX, video.getY(), newZ);
+
+                if (!silent) {
+                    mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Moved hologram closer"));
+                }
+            } else if (!silent) {
+                mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] No video hologram to move"));
+            }
+            return;
+        }
+
         if (args[0].equalsIgnoreCase("vd")) {
             if (hologramListener != null) {
                 hologramListener.clearVideoHologram();
