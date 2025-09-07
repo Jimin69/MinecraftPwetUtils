@@ -13,7 +13,7 @@ public class HologramCommand extends Command {
     private static HologramImageListener hologramListener;
 
     public HologramCommand() {
-        super("hologram", "holo", "hg");
+        super("hologram", "holoram", "holo", "hg");
     }
 
     public static void setHologramListener(HologramImageListener listener) {

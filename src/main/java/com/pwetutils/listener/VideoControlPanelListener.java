@@ -30,6 +30,7 @@ public class VideoControlPanelListener {
     private static final long ERROR_DISPLAY_DURATION = 2000;
     private boolean toggleModeActive = false;
     private static final long TOGGLE_ANIMATION_INTERVAL = 500;
+    private float lastPlayerHealth = -1;
 
     public VideoControlPanelListener() {
         // Static buttons only - A button is now dynamic
@@ -175,8 +176,42 @@ public class VideoControlPanelListener {
         return toggleModeActive;
     }
 
+    private void checkPlayerDamage() {
+        if (!toggleModeActive) return;
+
+        Minecraft mc = Minecraft.getMinecraft();
+        if (mc.thePlayer == null) return;
+
+        float currentHealth = mc.thePlayer.getHealth();
+
+        // Initialize last health if needed
+        if (lastPlayerHealth < 0) {
+            lastPlayerHealth = currentHealth;
+            return;
+        }
+
+        // Check if health decreased
+        if (currentHealth < lastPlayerHealth) {
+            HologramImageListener listener = getHologramListener();
+            if (listener != null && listener.hasVideoHologram()) {
+                VideoHologram video = listener.getCurrentVideoHologram();
+                if (video != null && !video.isPaused()) {
+                    // Pause the video
+                    video.pause();
+                    // Set transparency to IDLE
+                    video.setTransparencyMode(VideoHologram.TransparencyMode.IDLE);
+                }
+            }
+        }
+
+        lastPlayerHealth = currentHealth;
+    }
+
     @SubscribeEvent
     public void onRender(RenderGameOverlayEvent.Post event) {
+        // Always check for player damage regardless of chat GUI
+        checkPlayerDamage();
+
         Minecraft mc = Minecraft.getMinecraft();
         if (!(mc.currentScreen instanceof GuiChat)) return;
 
@@ -238,6 +273,8 @@ public class VideoControlPanelListener {
                             // Toggle the mode
                             toggleModeActive = !toggleModeActive;
                             clickAnimations.put(button.command, System.currentTimeMillis());
+                            // Reset health tracking when toggling
+                            lastPlayerHealth = -1;
                             break;
                         } else if (button.type == ButtonType.SKIP_FORWARD) {
                             // Handle skip forward with shift modifier
