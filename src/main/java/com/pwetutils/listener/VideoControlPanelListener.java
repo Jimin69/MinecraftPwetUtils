@@ -332,6 +332,43 @@ public class VideoControlPanelListener {
                         if (button.type == ButtonType.BORDER) {
                             panelExpanded = false;
                             break;
+                        } else if (button.type == ButtonType.PROGRESS) {
+                            // Calculate click position within the progress bar
+                            int padding = 2;
+                            int boxWidth = button.width;
+                            int actualXFromRight = button.xFromRight + BASE_OFFSET;
+                            int buttonX = rightEdge - actualXFromRight - boxWidth;
+
+                            // Get duration and calculate target time
+                            HologramImageListener listener = getHologramListener();
+                            if (listener != null && listener.hasVideoHologram()) {
+                                VideoHologram video = listener.getCurrentVideoHologram();
+                                float duration = video.getDuration();
+
+                                // The progress bar text format is: "0:00 |||||||||||| 0:00"
+                                // We need to calculate where the actual bar portion is
+                                String currentTimeStr = formatTime(duration * video.getProgress());
+                                String durationStr = formatTime(duration);
+                                int timeTextWidth = mc.fontRendererObj.getStringWidth("0:00 ");
+                                int endTimeWidth = mc.fontRendererObj.getStringWidth(" 0:00");
+
+                                // Calculate the actual bar area
+                                int barStartX = buttonX + timeTextWidth;
+                                int barWidth = boxWidth - timeTextWidth - endTimeWidth;
+
+                                // Check if click is within the bar area
+                                if (mouseX >= barStartX && mouseX <= barStartX + barWidth) {
+                                    float barRelativeX = (float)(mouseX - barStartX) / barWidth;
+                                    barRelativeX = Math.max(0, Math.min(1, barRelativeX));
+
+                                    float targetTime = duration * barRelativeX;
+                                    video.seekTo(targetTime);
+
+                                    // Optional: Add click animation
+                                    clickAnimations.put(button.command, System.currentTimeMillis());
+                                }
+                            }
+                            break;
                         } else if (button.type == ButtonType.TOGGLE) {
                             if (shiftHeld) {
                                 // Shift+click on A button - resume from damage pause
