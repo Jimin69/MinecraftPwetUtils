@@ -206,19 +206,28 @@ public class VideoControlPanelListener {
         float duration = video.getDuration();
         float currentTime = duration * progress;
 
+        // Format times first to calculate total text width
+        String currentTimeStr = formatTime(currentTime);
+        String durationStr = formatTime(duration);
+
         // Calculate hover position if hovering
         int hoveredSegment = -1;
         if (hovering && mouseX >= 0) {
             Minecraft mc = Minecraft.getMinecraft();
-            String currentTimeStr = formatTime(currentTime);
+
+            // Calculate the ACTUAL width of the bar (60 "|" characters)
+            int actualBarWidth = mc.fontRendererObj.getStringWidth("||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||");
+            String fullText = currentTimeStr + " " + "||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||" + " " + durationStr;
+            int totalTextWidth = mc.fontRendererObj.getStringWidth(fullText);
+
+            // Account for centering
+            int centeringOffset = (boxWidth - totalTextWidth) / 2;
             int timeTextWidth = mc.fontRendererObj.getStringWidth(currentTimeStr + " ");
-            int endTimeWidth = mc.fontRendererObj.getStringWidth(" " + formatTime(duration));
 
-            int barStartX = buttonX + timeTextWidth;
-            int barWidth = boxWidth - timeTextWidth - endTimeWidth;
+            int barStartX = buttonX + centeringOffset + timeTextWidth;
 
-            if (mouseX >= barStartX && mouseX <= barStartX + barWidth) {
-                float relativeX = (float)(mouseX - barStartX) / barWidth;
+            if (mouseX >= barStartX && mouseX <= barStartX + actualBarWidth) {
+                float relativeX = (float)(mouseX - barStartX) / actualBarWidth;
                 hoveredSegment = (int)(relativeX * 60);
                 hoveredSegment = Math.max(0, Math.min(59, hoveredSegment));
             }
@@ -237,10 +246,6 @@ public class VideoControlPanelListener {
                 bar.append("§7|");  // Gray for remaining
             }
         }
-
-        // Format times
-        String currentTimeStr = formatTime(currentTime);
-        String durationStr = formatTime(duration);
 
         return "§f" + currentTimeStr + " " + bar.toString() + " §f" + durationStr;
     }
@@ -387,20 +392,23 @@ public class VideoControlPanelListener {
                                 VideoHologram video = listener.getCurrentVideoHologram();
                                 float duration = video.getDuration();
 
-                                // The progress bar text format is: "0:00 |||||||||||| 0:00"
-                                // We need to calculate where the actual bar portion is
                                 String currentTimeStr = formatTime(duration * video.getProgress());
                                 String durationStr = formatTime(duration);
-                                int timeTextWidth = mc.fontRendererObj.getStringWidth("0:00 ");
-                                int endTimeWidth = mc.fontRendererObj.getStringWidth(" 0:00");
 
-                                // Calculate the actual bar area
-                                int barStartX = buttonX + timeTextWidth;
-                                int barWidth = boxWidth - timeTextWidth - endTimeWidth;
+                                // Calculate the ACTUAL width of the bar and full text
+                                int actualBarWidth = mc.fontRendererObj.getStringWidth("||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||");
+                                String fullText = currentTimeStr + " " + "||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||" + " " + durationStr;
+                                int totalTextWidth = mc.fontRendererObj.getStringWidth(fullText);
+
+                                // Account for centering
+                                int centeringOffset = (boxWidth - totalTextWidth) / 2;
+                                int timeTextWidth = mc.fontRendererObj.getStringWidth(currentTimeStr + " ");
+
+                                int barStartX = buttonX + centeringOffset + timeTextWidth;
 
                                 // Check if click is within the bar area
-                                if (mouseX >= barStartX && mouseX <= barStartX + barWidth) {
-                                    float barRelativeX = (float)(mouseX - barStartX) / barWidth;
+                                if (mouseX >= barStartX && mouseX <= barStartX + actualBarWidth) {
+                                    float barRelativeX = (float)(mouseX - barStartX) / actualBarWidth;
                                     barRelativeX = Math.max(0, Math.min(1, barRelativeX));
 
                                     float targetTime = duration * barRelativeX;
