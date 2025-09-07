@@ -55,7 +55,7 @@ public class VideoControlPanelListener {
         }
     }
 
-    private List<ControlButton> getDynamicButtons() {
+    private List<ControlButton> getDynamicButtons(int mouseX, int rightEdge, boolean isProgressHovered, int progressButtonX, int progressButtonWidth) {
         List<ControlButton> buttons = new ArrayList<>();
 
         // Add collapse button with dynamic text
@@ -73,8 +73,8 @@ public class VideoControlPanelListener {
 
         HologramImageListener hologramListener = getHologramListener();
 
-        // Dynamic progress bar
-        String progressBarText = buildProgressBar(hologramListener);
+        // Dynamic progress bar with hover highlighting
+        String progressBarText = buildProgressBar(hologramListener, mouseX, progressButtonX, progressButtonWidth, isProgressHovered);
         buttons.add(new ControlButton(progressBarText, 24, 185, 0, ButtonType.PROGRESS, "/hologram vpr silent"));
 
         // Dynamic A toggle button with animation
@@ -191,7 +191,7 @@ public class VideoControlPanelListener {
         return buttons;
     }
 
-    private String buildProgressBar(HologramImageListener hologramListener) {
+    private String buildProgressBar(HologramImageListener hologramListener, int mouseX, int buttonX, int boxWidth, boolean hovering) {
         if (hologramListener == null || !hologramListener.hasVideoHologram()) {
             // Default when no video
             StringBuilder bar = new StringBuilder();
@@ -206,15 +206,35 @@ public class VideoControlPanelListener {
         float duration = video.getDuration();
         float currentTime = duration * progress;
 
+        // Calculate hover position if hovering
+        int hoveredSegment = -1;
+        if (hovering && mouseX >= 0) {
+            Minecraft mc = Minecraft.getMinecraft();
+            String currentTimeStr = formatTime(currentTime);
+            int timeTextWidth = mc.fontRendererObj.getStringWidth(currentTimeStr + " ");
+            int endTimeWidth = mc.fontRendererObj.getStringWidth(" " + formatTime(duration));
+
+            int barStartX = buttonX + timeTextWidth;
+            int barWidth = boxWidth - timeTextWidth - endTimeWidth;
+
+            if (mouseX >= barStartX && mouseX <= barStartX + barWidth) {
+                float relativeX = (float)(mouseX - barStartX) / barWidth;
+                hoveredSegment = (int)(relativeX * 60);
+                hoveredSegment = Math.max(0, Math.min(59, hoveredSegment));
+            }
+        }
+
         // Build the bar with 60 segments
         StringBuilder bar = new StringBuilder();
         int progressedBars = (int)(progress * 60);
 
         for (int i = 0; i < 60; i++) {
-            if (i < progressedBars) {
-                bar.append("§c|");
+            if (i == hoveredSegment) {
+                bar.append("§f|");  // White for hovered segment
+            } else if (i < progressedBars) {
+                bar.append("§c|");  // Red for progressed
             } else {
-                bar.append("§7|");
+                bar.append("§7|");  // Gray for remaining
             }
         }
 
@@ -288,7 +308,29 @@ public class VideoControlPanelListener {
         boolean rightMouseDown = Mouse.isButtonDown(1);
         boolean shiftHeld = Keyboard.isKeyDown(Keyboard.KEY_LSHIFT) || Keyboard.isKeyDown(Keyboard.KEY_RSHIFT);
 
-        List<ControlButton> buttons = getDynamicButtons();
+        // Pre-calculate progress button position and hover state
+        boolean isProgressHovered = false;
+        int progressButtonX = 0;
+        int progressButtonWidth = 185;  // From the button definition
+
+        if (panelExpanded) {
+            // Calculate progress button position
+            int actualXFromRight = 24 + BASE_OFFSET;  // 24 is xFromRight for progress button
+            progressButtonX = rightEdge - actualXFromRight - progressButtonWidth;
+
+            // Check if mouse is hovering over progress bar
+            int padding = 2;
+            int height = mc.fontRendererObj.FONT_HEIGHT;
+            int rowHeight = height + padding * 2 + 1;
+            int progressY = baseY - (0 * rowHeight);  // Row 0 for progress bar
+
+            isProgressHovered = mouseX >= progressButtonX - padding &&
+                    mouseX <= progressButtonX + progressButtonWidth + padding &&
+                    mouseY >= progressY - padding &&
+                    mouseY <= progressY + height + padding;
+        }
+
+        List<ControlButton> buttons = getDynamicButtons(mouseX, rightEdge, isProgressHovered, progressButtonX, progressButtonWidth);
 
         // Clean up old animations
         clickAnimations.entrySet().removeIf(entry ->
