@@ -26,6 +26,8 @@ public class VideoControlPanelListener {
     private HologramImageListener hologramListener;
     private final Map<String, Long> firstClickTime = new HashMap<>();
     private static final long DOUBLE_CLICK_TIME = 500;
+    private long noVideoErrorTime = 0;
+    private static final long ERROR_DISPLAY_DURATION = 2000;
 
     public VideoControlPanelListener() {
         // Static buttons only - progress bar is now dynamic
@@ -48,7 +50,21 @@ public class VideoControlPanelListener {
     }
 
     private List<ControlButton> getDynamicButtons() {
-        List<ControlButton> buttons = new ArrayList<>(staticButtons);
+        List<ControlButton> buttons = new ArrayList<>();
+
+        // Add collapse button with dynamic text
+        long currentTime = System.currentTimeMillis();
+        String collapseText = "§7< H";
+        if (currentTime - noVideoErrorTime < ERROR_DISPLAY_DURATION) {
+            collapseText = "§c✖ H";
+        }
+        buttons.add(new ControlButton(collapseText, 2, 0, 0, ButtonType.COLLAPSE, null));
+
+        // Add rest of static buttons
+        for (int i = 1; i < staticButtons.size(); i++) {
+            buttons.add(staticButtons.get(i));
+        }
+
         HologramImageListener hologramListener = getHologramListener();
 
         // Dynamic progress bar
@@ -187,7 +203,13 @@ public class VideoControlPanelListener {
                 for (ControlButton button : buttons) {
                     if (button.type == ButtonType.COLLAPSE) {
                         if (isHovering(button, rightEdge, baseY, mouseX, mouseY, mc)) {
-                            panelExpanded = true;
+                            HologramImageListener listener = getHologramListener();
+                            if (listener != null && listener.hasVideoHologram()) {
+                                panelExpanded = true;
+                            } else {
+                                // Show error - no video hologram
+                                noVideoErrorTime = System.currentTimeMillis();
+                            }
                             break;
                         }
                     }
@@ -292,11 +314,11 @@ public class VideoControlPanelListener {
         int padding = 2;
         String displayText = button.text;
 
-        // Modify display text for skip buttons when shift is held
+        // Modify display text for skip buttons when shift is held - keep white color
         if (shiftHeld && button.type == ButtonType.SKIP_FORWARD) {
-            displayText = "§e⫸⫸";  // Double arrow or different color to indicate 10s
+            displayText = "§f⫸⫸";  // Double arrow in white
         } else if (shiftHeld && button.type == ButtonType.SKIP_BACKWARD) {
-            displayText = "§e⫷⫷";  // Double arrow or different color to indicate 10s
+            displayText = "§f⫷⫷";  // Double arrow in white
         }
 
         int textWidth = mc.fontRendererObj.getStringWidth(displayText);
@@ -329,16 +351,16 @@ public class VideoControlPanelListener {
                 clickAnimations.containsKey(button.command + "_pending");
 
         if (button.type == ButtonType.COLLAPSE && hovering) {
-            displayText = displayText.replace("§7<", "§f<");
+            // Don't change color if it's showing error
+            if (!displayText.startsWith("§c")) {
+                displayText = displayText.replace("§7<", "§f<");
+            }
         } else if (button.type == ButtonType.BORDER && hovering) {
             displayText = displayText.replaceFirst("§.", "§f");
         } else if (isPending) {
             displayText = displayText.replaceFirst("§.", "§6");
         } else if (isClicked && button.row == 1 && button.type != ButtonType.BORDER) {
-            // Keep the yellow color for shift-held skip buttons when clicked
-            if (!shiftHeld || (button.type != ButtonType.SKIP_FORWARD && button.type != ButtonType.SKIP_BACKWARD)) {
-                displayText = displayText.replaceFirst("§.", "§e");
-            }
+            displayText = displayText.replaceFirst("§.", "§e");
         }
 
         int textX = x + (boxWidth - mc.fontRendererObj.getStringWidth(displayText)) / 2;
