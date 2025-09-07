@@ -31,6 +31,8 @@ public class VideoControlPanelListener {
     private boolean toggleModeActive = false;
     private static final long TOGGLE_ANIMATION_INTERVAL = 500;
     private float lastPlayerHealth = -1;
+    private long greenFlashStartTime = 0;
+    private static final long GREEN_FLASH_DURATION = 3000;
 
     public VideoControlPanelListener() {
         // Static buttons only - A button is now dynamic
@@ -75,8 +77,14 @@ public class VideoControlPanelListener {
 
         // Dynamic A toggle button with animation
         String toggleSymbol = "§7A";
-        if (toggleModeActive) {
-            // Animate between yellow and orange every 0.5 seconds
+        boolean inGreenFlash = (currentTime - greenFlashStartTime < GREEN_FLASH_DURATION);
+
+        if (inGreenFlash) {
+            // Green flash animation
+            boolean useLight = (currentTime / TOGGLE_ANIMATION_INTERVAL) % 2 == 0;
+            toggleSymbol = useLight ? "§aA" : "§2A";
+        } else if (toggleModeActive) {
+            // Normal yellow/orange animation when active
             boolean useYellow = (currentTime / TOGGLE_ANIMATION_INTERVAL) % 2 == 0;
             toggleSymbol = useYellow ? "§eA" : "§6A";
         }
@@ -99,9 +107,19 @@ public class VideoControlPanelListener {
         // Skip forward button with special type
         buttons.add(new ControlButton("§f⫸", 54, 35, 1, ButtonType.SKIP_FORWARD, "/hologram vsf"));
 
-        // Pause button - dynamic symbol
+        // Pause button - dynamic symbol with green flash
         String pauseSymbol = "§f┃┃";
-        if (hologramListener != null && hologramListener.hasVideoHologram()) {
+        if (inGreenFlash) {
+            // Green flash for pause button
+            boolean useLight = (currentTime / TOGGLE_ANIMATION_INTERVAL) % 2 == 0;
+            String greenColor = useLight ? "§a" : "§2";
+            if (hologramListener != null && hologramListener.hasVideoHologram()) {
+                VideoHologram video = hologramListener.getCurrentVideoHologram();
+                pauseSymbol = video.isPaused() ? greenColor + "§l⫸" : greenColor + "┃┃";
+            } else {
+                pauseSymbol = greenColor + "┃┃";
+            }
+        } else if (hologramListener != null && hologramListener.hasVideoHologram()) {
             VideoHologram video = hologramListener.getCurrentVideoHologram();
             if (video.isPaused()) {
                 pauseSymbol = "§f§l⫸";
@@ -114,9 +132,23 @@ public class VideoControlPanelListener {
         // Skip backward button with special type
         buttons.add(new ControlButton("§f⫷", 134, 35, 1, ButtonType.SKIP_BACKWARD, "/hologram vsb"));
 
-        // Transparency button - dynamic symbol
+        // Transparency button - dynamic symbol with green flash
         String transSymbol = "§7①";
-        if (hologramListener != null && hologramListener.hasVideoHologram()) {
+        if (inGreenFlash) {
+            // Green flash for transparency button
+            boolean useLight = (currentTime / TOGGLE_ANIMATION_INTERVAL) % 2 == 0;
+            String greenColor = useLight ? "§a" : "§2";
+            if (hologramListener != null && hologramListener.hasVideoHologram()) {
+                VideoHologram video = hologramListener.getCurrentVideoHologram();
+                switch (video.getTransparencyMode()) {
+                    case SOLID: transSymbol = greenColor + "①"; break;
+                    case TRANSPARENT: transSymbol = greenColor + "②"; break;
+                    case IDLE: transSymbol = greenColor + "③"; break;
+                }
+            } else {
+                transSymbol = greenColor + "①";
+            }
+        } else if (hologramListener != null && hologramListener.hasVideoHologram()) {
             VideoHologram video = hologramListener.getCurrentVideoHologram();
             switch (video.getTransparencyMode()) {
                 case SOLID: transSymbol = "§7①"; break;
@@ -270,11 +302,28 @@ public class VideoControlPanelListener {
                             panelExpanded = false;
                             break;
                         } else if (button.type == ButtonType.TOGGLE) {
-                            // Toggle the mode
-                            toggleModeActive = !toggleModeActive;
-                            clickAnimations.put(button.command, System.currentTimeMillis());
-                            // Reset health tracking when toggling
-                            lastPlayerHealth = -1;
+                            if (shiftHeld) {
+                                // Shift+click on A button - resume from damage pause
+                                HologramImageListener listener = getHologramListener();
+                                if (listener != null && listener.hasVideoHologram()) {
+                                    VideoHologram video = listener.getCurrentVideoHologram();
+                                    if (video != null && video.isPaused() &&
+                                            video.getTransparencyMode() == VideoHologram.TransparencyMode.IDLE) {
+                                        // Resume video and set to solid
+                                        video.resume();
+                                        video.setTransparencyMode(VideoHologram.TransparencyMode.SOLID);
+                                        // Start green flash animation
+                                        greenFlashStartTime = System.currentTimeMillis();
+                                        clickAnimations.put(button.command, System.currentTimeMillis());
+                                    }
+                                }
+                            } else {
+                                // Normal click - toggle the mode
+                                toggleModeActive = !toggleModeActive;
+                                clickAnimations.put(button.command, System.currentTimeMillis());
+                                // Reset health tracking when toggling
+                                lastPlayerHealth = -1;
+                            }
                             break;
                         } else if (button.type == ButtonType.SKIP_FORWARD) {
                             // Handle skip forward with shift modifier
