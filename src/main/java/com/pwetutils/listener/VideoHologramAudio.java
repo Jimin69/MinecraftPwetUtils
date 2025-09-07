@@ -237,6 +237,23 @@ public class VideoHologramAudio {
     public void resume() {
         if (playing && paused) {
             paused = false;
+
+            // check if we have buffers queued, if not, load some
+            int queued = AL10.alGetSourcei(source, AL10.AL_BUFFERS_QUEUED);
+            if (queued == 0) {
+                // need to queue some buffers first
+                for (int i = 0; i < 2 && !availableBuffers.isEmpty(); i++) {
+                    Integer buffer = availableBuffers.poll();
+                    if (loadAndQueueChunk(buffer, nextChunkTime)) {
+                        queuedBuffers.offer(buffer);
+                        nextChunkTime += 1.0f;
+                    } else {
+                        availableBuffers.offer(buffer);
+                        break;
+                    }
+                }
+            }
+
             AL10.alSourcePlay(source);
         }
     }
@@ -268,7 +285,42 @@ public class VideoHologramAudio {
     public void seekTo(float time) {
         if (!hasAudio) return;
 
-        boolean wasPlaying = playing;
+        boolean wasPlaying = playing && !paused;
+        boolean wasPaused = paused;
+
+        // if we're seeking while paused, we need to handle it differently
+        if (playing && paused) {
+            // just update the position without stopping
+            AL10.alSourceStop(source);
+            AL10.alSourcei(source, AL10.AL_BUFFER, AL10.AL_NONE);
+
+            availableBuffers.clear();
+            availableBuffers.addAll(queuedBuffers);
+            queuedBuffers.clear();
+            for (int i = availableBuffers.size(); i < NUM_BUFFERS; i++) {
+                availableBuffers.offer(AL10.alGenBuffers());
+            }
+
+            nextChunkTime = (float)Math.floor(time);
+            allChunksLoaded = false;
+            lastBufferProcessedTime = 0;
+
+            // pre-load some buffers but don't play
+            for (int i = 0; i < 2 && !availableBuffers.isEmpty(); i++) {
+                Integer buffer = availableBuffers.poll();
+                if (loadAndQueueChunk(buffer, nextChunkTime)) {
+                    queuedBuffers.offer(buffer);
+                    nextChunkTime += 1.0f;
+                } else {
+                    availableBuffers.offer(buffer);
+                    break;
+                }
+            }
+            // don't start playing since we're paused
+            return;
+        }
+
+        // normal seek when playing
         stop();
 
         nextChunkTime = (float)Math.floor(time);

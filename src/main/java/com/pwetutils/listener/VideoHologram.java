@@ -265,7 +265,12 @@ public class VideoHologram {
         }
 
         if (audio != null) {
+            boolean wasPlaying = audio.isPlaying();
             audio.seekTo(seconds);
+            // If video is paused, make sure audio stays paused after seeking
+            if (paused && wasPlaying) {
+                audio.pause();
+            }
         }
     }
 
@@ -393,7 +398,12 @@ public class VideoHologram {
 
         if (audio != null) {
             float newTime = (targetFrame - 1) / 10.0f;
+            boolean wasPlaying = audio.isPlaying();
             audio.seekTo(newTime);
+            // If video is paused, make sure audio stays paused after seeking
+            if (paused && wasPlaying) {
+                audio.pause();
+            }
         }
     }
 
