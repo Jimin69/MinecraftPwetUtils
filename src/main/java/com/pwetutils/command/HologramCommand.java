@@ -35,6 +35,14 @@ public class HologramCommand extends Command {
             return;
         }
 
+        if (args[0].equalsIgnoreCase("vd")) {
+            if (hologramListener != null) {
+                hologramListener.clearVideoHologram();
+                if (!silent) mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Deleted video hologram"));
+            }
+            return;
+        }
+
         if (args[0].equalsIgnoreCase("vmh") || (args[0].equalsIgnoreCase("video") && args.length >= 2 && args[1].equalsIgnoreCase("movehere"))) {
             if (hologramListener != null && hologramListener.hasVideoHologram()) {
                 hologramListener.moveVideoHologramToPlayer();
