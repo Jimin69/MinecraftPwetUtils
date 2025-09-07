@@ -10,6 +10,7 @@ public class ModuleSettings {
     private static boolean sessionCounterEnabled = true;
     private static boolean emoteConverterEnabled = true;
     private static boolean autoFriendAcceptEnabled = true;
+    private static boolean ingameHologramsEnabled = true;
 
     public static boolean isNameMentionEnabled() {
         return nameMentionEnabled;
@@ -80,5 +81,13 @@ public class ModuleSettings {
 
     public static void setAutoFriendAcceptEnabled(boolean enabled) {
         autoFriendAcceptEnabled = enabled;
+    }
+
+    public static boolean isIngameHologramsEnabled() {
+        return ingameHologramsEnabled;
+    }
+
+    public static void setIngameHologramsEnabled(boolean enabled) {
+        ingameHologramsEnabled = enabled;
     }
 }

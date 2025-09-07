@@ -1,6 +1,7 @@
 package com.pwetutils.listener;
 
 import com.pwetutils.command.HologramCommand;
+import com.pwetutils.settings.ModuleSettings;
 import net.weavemc.loader.api.event.RenderGameOverlayEvent;
 import net.weavemc.loader.api.event.SubscribeEvent;
 import net.minecraft.client.Minecraft;
@@ -275,6 +276,7 @@ public class VideoControlPanelListener {
 
         Minecraft mc = Minecraft.getMinecraft();
         if (!(mc.currentScreen instanceof GuiChat)) return;
+        if (!ModuleSettings.isIngameHologramsEnabled()) return;
 
         ScaledResolution sr = new ScaledResolution(mc);
         int baseY = sr.getScaledHeight() - 27;

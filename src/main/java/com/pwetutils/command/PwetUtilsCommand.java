@@ -2,6 +2,7 @@ package com.pwetutils.command;
 
 import com.pwetutils.settings.ModuleSettings;
 import com.pwetutils.listener.AdditionalExpListener;
+import com.pwetutils.listener.HologramImageListener;
 import net.weavemc.loader.api.command.Command;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.ChatComponentText;
@@ -16,6 +17,16 @@ import com.pwetutils.listener.ResourceOverlayListener;
 public class PwetUtilsCommand extends Command {
     public PwetUtilsCommand() {
         super("pwetutils", "jimin", "pu");
+    }
+
+    private HologramImageListener getHologramListener() {
+        try {
+            java.lang.reflect.Field field = HologramCommand.class.getDeclaredField("hologramListener");
+            field.setAccessible(true);
+            return (HologramImageListener) field.get(null);
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     @Override
@@ -55,11 +66,48 @@ public class PwetUtilsCommand extends Command {
             sendModuleHelpMessage(mc, "nameMentionIndicator");
             sendModuleHelpMessage(mc, "increaseChatLength");
             sendModuleHelpMessage(mc, "languageInputSwitch");
+            sendModuleHelpMessage(mc, "ingameHolograms");
 
             mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] §7/harvester <on|off|sound> §eControl auto-harvester"));
             mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] §7/rq§8|§7/requeue §eJoin the last BedWars mode you played."));
             mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] §7/b4s§8|§7/b4§8|§7/b3s§8|§7/b2s§8|§7/b1s §eJoin BedWars mode"));
             mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] §6§m----------------------------------------------"));
+            return;
+        }
+
+        if (args[0].equalsIgnoreCase("ingameHolograms")) {
+            if (args.length < 2) {
+                mc.thePlayer.addChatMessage(
+                        new ChatComponentText("§7[§6PwetUtils§7] §7Usage: /pwetutils ingameHolograms <enable|disable>")
+                );
+                return;
+            }
+            if (args.length > 2) {
+                mc.thePlayer.addChatMessage(
+                        new ChatComponentText("§7[§6PwetUtils§7] §7Unknown argument. Use §e/pwetutils help §7for command list.")
+                );
+                return;
+            }
+
+            if (args[1].equalsIgnoreCase("enable")) {
+                ModuleSettings.setIngameHologramsEnabled(true);
+                mc.thePlayer.addChatMessage(
+                        new ChatComponentText("§7[§6PwetUtils§7] §7Ingame holograms have been §aenabled")
+                );
+            } else if (args[1].equalsIgnoreCase("disable")) {
+                ModuleSettings.setIngameHologramsEnabled(false);
+                HologramImageListener hologramListener = getHologramListener();
+                if (hologramListener != null) {
+                    hologramListener.clearVideoHologram();
+                }
+                mc.thePlayer.addChatMessage(
+                        new ChatComponentText("§7[§6PwetUtils§7] §7Ingame holograms have been §cdisabled")
+                );
+            } else {
+                mc.thePlayer.addChatMessage(
+                        new ChatComponentText("§7[§6PwetUtils§7] §7Usage: /pwetutils ingameHolograms <enable|disable>")
+                );
+            }
             return;
         }
 

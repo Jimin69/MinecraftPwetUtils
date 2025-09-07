@@ -59,7 +59,29 @@ public class SettingsOverlayListener {
                 ModuleSettings::isLanguageInputEnabled,
                 ModuleSettings::setLanguageInputEnabled));
 
-        // modules.add(new ModuleItem("§5★", "test", null, null));
+        modules.add(new ModuleItem("§9H", "ingameHolograms",
+                ModuleSettings::isIngameHologramsEnabled,
+                this::handleIngameHologramsToggle));
+    }
+
+    private void handleIngameHologramsToggle(boolean enabled) {
+        ModuleSettings.setIngameHologramsEnabled(enabled);
+        if (!enabled) {
+            HologramImageListener hologramListener = getHologramListener();
+            if (hologramListener != null) {
+                hologramListener.clearVideoHologram();
+            }
+        }
+    }
+
+    private HologramImageListener getHologramListener() {
+        try {
+            java.lang.reflect.Field field = com.pwetutils.command.HologramCommand.class.getDeclaredField("hologramListener");
+            field.setAccessible(true);
+            return (HologramImageListener) field.get(null);
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     @SubscribeEvent
