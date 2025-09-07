@@ -296,7 +296,7 @@ public class VideoControlPanelListener {
 
     @SubscribeEvent
     public void onRender(RenderGameOverlayEvent.Post event) {
-        // Always check for player damage regardless of chat GUI
+        // always check for player damage regardless of chat GUI
         checkPlayerDamage();
 
         Minecraft mc = Minecraft.getMinecraft();
@@ -313,17 +313,25 @@ public class VideoControlPanelListener {
         boolean rightMouseDown = Mouse.isButtonDown(1);
         boolean shiftHeld = Keyboard.isKeyDown(Keyboard.KEY_LSHIFT) || Keyboard.isKeyDown(Keyboard.KEY_RSHIFT);
 
-        // Pre-calculate progress button position and hover state
+        // Auto-collapse panel if video hologram is deleted
+        if (panelExpanded) {
+            HologramImageListener listener = getHologramListener();
+            if (listener == null || !listener.hasVideoHologram()) {
+                panelExpanded = false;
+            }
+        }
+
+        // pre calculate progress button position and hover state
         boolean isProgressHovered = false;
         int progressButtonX = 0;
         int progressButtonWidth = 185;  // From the button definition
 
         if (panelExpanded) {
-            // Calculate progress button position
+            // calculate progress button position
             int actualXFromRight = 24 + BASE_OFFSET;  // 24 is xFromRight for progress button
             progressButtonX = rightEdge - actualXFromRight - progressButtonWidth;
 
-            // Check if mouse is hovering over progress bar
+            // check if mouse is hovering over progress bar
             int padding = 2;
             int height = mc.fontRendererObj.FONT_HEIGHT;
             int rowHeight = height + padding * 2 + 1;
@@ -337,13 +345,13 @@ public class VideoControlPanelListener {
 
         List<ControlButton> buttons = getDynamicButtons(mouseX, rightEdge, isProgressHovered, progressButtonX, progressButtonWidth);
 
-        // Clean up old animations
+        // clean up old animations
         clickAnimations.entrySet().removeIf(entry ->
                 System.currentTimeMillis() - entry.getValue() > CLICK_ANIMATION_DURATION);
         firstClickTime.entrySet().removeIf(entry ->
                 System.currentTimeMillis() - entry.getValue() > DOUBLE_CLICK_TIME);
 
-        // Check if any border button is hovered
+        // check if any border button is hovered
         boolean anyBorderHovered = false;
         if (panelExpanded) {
             for (ControlButton button : buttons) {
@@ -356,7 +364,7 @@ public class VideoControlPanelListener {
             }
         }
 
-        // Handle clicks
+        // handle clicks
         if (mouseDown && !wasMouseDown) {
             if (!panelExpanded) {
                 for (ControlButton button : buttons) {
@@ -366,7 +374,7 @@ public class VideoControlPanelListener {
                             if (listener != null && listener.hasVideoHologram()) {
                                 panelExpanded = true;
                             } else {
-                                // Show error - no video hologram
+                                // show error, no video hologram
                                 noVideoErrorTime = System.currentTimeMillis();
                             }
                             break;
@@ -380,13 +388,13 @@ public class VideoControlPanelListener {
                             panelExpanded = false;
                             break;
                         } else if (button.type == ButtonType.PROGRESS) {
-                            // Calculate click position within the progress bar
+                            // calculate click position within the progress bar
                             int padding = 2;
                             int boxWidth = button.width;
                             int actualXFromRight = button.xFromRight + BASE_OFFSET;
                             int buttonX = rightEdge - actualXFromRight - boxWidth;
 
-                            // Get duration and calculate target time
+                            // get duration and calculate target time
                             HologramImageListener listener = getHologramListener();
                             if (listener != null && listener.hasVideoHologram()) {
                                 VideoHologram video = listener.getCurrentVideoHologram();
@@ -395,7 +403,7 @@ public class VideoControlPanelListener {
                                 String currentTimeStr = formatTime(duration * video.getProgress());
                                 String durationStr = formatTime(duration);
 
-                                // Calculate the ACTUAL width of the bar and full text
+                                // calculate the ACTUAL width of the bar and full text
                                 int actualBarWidth = mc.fontRendererObj.getStringWidth("||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||");
                                 String fullText = currentTimeStr + " " + "||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||" + " " + durationStr;
                                 int totalTextWidth = mc.fontRendererObj.getStringWidth(fullText);
@@ -414,43 +422,43 @@ public class VideoControlPanelListener {
                                     float targetTime = duration * barRelativeX;
                                     video.seekTo(targetTime);
 
-                                    // Optional: Add click animation
+                                    // Optional: add click animation
                                     clickAnimations.put(button.command, System.currentTimeMillis());
                                 }
                             }
                             break;
                         } else if (button.type == ButtonType.TOGGLE) {
                             if (shiftHeld) {
-                                // Shift+click on A button - resume from damage pause
+                                // shift+click on A button, resume from damage pause
                                 HologramImageListener listener = getHologramListener();
                                 if (listener != null && listener.hasVideoHologram()) {
                                     VideoHologram video = listener.getCurrentVideoHologram();
                                     if (video != null && video.isPaused() &&
                                             video.getTransparencyMode() == VideoHologram.TransparencyMode.IDLE) {
-                                        // Resume video and set to solid
+                                        // resume video and set to solid
                                         video.resume();
                                         video.setTransparencyMode(VideoHologram.TransparencyMode.SOLID);
-                                        // Start green flash animation
+                                        // start green flash animation
                                         greenFlashStartTime = System.currentTimeMillis();
                                         clickAnimations.put(button.command, System.currentTimeMillis());
                                     }
                                 }
                             } else {
-                                // Normal click - toggle the mode
+                                // normal click - toggle the mode
                                 toggleModeActive = !toggleModeActive;
                                 clickAnimations.put(button.command, System.currentTimeMillis());
-                                // Reset health tracking when toggling
+                                // reset health tracking when toggling
                                 lastPlayerHealth = -1;
                             }
                             break;
                         } else if (button.type == ButtonType.SKIP_FORWARD) {
-                            // Handle skip forward with shift modifier
+                            // handle skip forward with shift modifier
                             clickAnimations.put(button.command, System.currentTimeMillis());
                             int skipAmount = shiftHeld ? 10 : 5;
                             mc.thePlayer.sendChatMessage(button.command + " " + skipAmount + " silent");
                             break;
                         } else if (button.type == ButtonType.SKIP_BACKWARD) {
-                            // Handle skip backward with shift modifier
+                            // handle skip backward with shift modifier
                             clickAnimations.put(button.command, System.currentTimeMillis());
                             int skipAmount = shiftHeld ? 10 : 5;
                             mc.thePlayer.sendChatMessage(button.command + " " + skipAmount + " silent");
