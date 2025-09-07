@@ -28,14 +28,15 @@ public class VideoControlPanelListener {
     private static final long DOUBLE_CLICK_TIME = 500;
     private long noVideoErrorTime = 0;
     private static final long ERROR_DISPLAY_DURATION = 2000;
+    private boolean toggleModeActive = false;
+    private static final long TOGGLE_ANIMATION_INTERVAL = 500;
 
     public VideoControlPanelListener() {
-        // Static buttons only - progress bar is now dynamic
+        // Static buttons only - A button is now dynamic
         staticButtons.add(new ControlButton("§7< H", 2, 0, 0, ButtonType.COLLAPSE, null));
         staticButtons.add(new ControlButton("§7/ ]", 2, 0, 0, ButtonType.BORDER, null));
         staticButtons.add(new ControlButton("§7[", 214, 0, 0, ButtonType.BORDER, null));
         staticButtons.add(new ControlButton("§7\\ ]", 2, 0, 1, ButtonType.BORDER, null));
-        staticButtons.add(new ControlButton("§7A", 24, 10, 1, ButtonType.NORMAL, null));
         staticButtons.add(new ControlButton("§7[", 214, 0, 1, ButtonType.BORDER, null));
     }
 
@@ -60,7 +61,7 @@ public class VideoControlPanelListener {
         }
         buttons.add(new ControlButton(collapseText, 2, 0, 0, ButtonType.COLLAPSE, null));
 
-        // Add rest of static buttons
+        // Add rest of static buttons (except A button)
         for (int i = 1; i < staticButtons.size(); i++) {
             buttons.add(staticButtons.get(i));
         }
@@ -70,6 +71,15 @@ public class VideoControlPanelListener {
         // Dynamic progress bar
         String progressBarText = buildProgressBar(hologramListener);
         buttons.add(new ControlButton(progressBarText, 24, 185, 0, ButtonType.PROGRESS, "/hologram vpr silent"));
+
+        // Dynamic A toggle button with animation
+        String toggleSymbol = "§7A";
+        if (toggleModeActive) {
+            // Animate between yellow and orange every 0.5 seconds
+            boolean useYellow = (currentTime / TOGGLE_ANIMATION_INTERVAL) % 2 == 0;
+            toggleSymbol = useYellow ? "§eA" : "§6A";
+        }
+        buttons.add(new ControlButton(toggleSymbol, 24, 10, 1, ButtonType.TOGGLE, "toggle_mode"));
 
         // Size button - dynamic symbol
         String sizeSymbol = "§7➍";
@@ -161,6 +171,10 @@ public class VideoControlPanelListener {
         return String.format("%d:%02d", minutes, secs);
     }
 
+    public boolean isToggleModeActive() {
+        return toggleModeActive;
+    }
+
     @SubscribeEvent
     public void onRender(RenderGameOverlayEvent.Post event) {
         Minecraft mc = Minecraft.getMinecraft();
@@ -219,6 +233,11 @@ public class VideoControlPanelListener {
                     if (button.type != ButtonType.COLLAPSE && isHovering(button, rightEdge, baseY, mouseX, mouseY, mc)) {
                         if (button.type == ButtonType.BORDER) {
                             panelExpanded = false;
+                            break;
+                        } else if (button.type == ButtonType.TOGGLE) {
+                            // Toggle the mode
+                            toggleModeActive = !toggleModeActive;
+                            clickAnimations.put(button.command, System.currentTimeMillis());
                             break;
                         } else if (button.type == ButtonType.SKIP_FORWARD) {
                             // Handle skip forward with shift modifier
@@ -359,9 +378,10 @@ public class VideoControlPanelListener {
             displayText = displayText.replaceFirst("§.", "§f");
         } else if (isPending) {
             displayText = displayText.replaceFirst("§.", "§6");
-        } else if (isClicked && button.row == 1 && button.type != ButtonType.BORDER) {
+        } else if (isClicked && button.row == 1 && button.type != ButtonType.BORDER && button.type != ButtonType.TOGGLE) {
             displayText = displayText.replaceFirst("§.", "§e");
         }
+        // Toggle button doesn't change color on click since it has its own animation
 
         int textX = x + (boxWidth - mc.fontRendererObj.getStringWidth(displayText)) / 2;
         mc.fontRendererObj.drawStringWithShadow(displayText, textX, y, 0xFFFFFF);
@@ -377,7 +397,8 @@ public class VideoControlPanelListener {
         PROGRESS,
         DOUBLE_CLICK,
         SKIP_FORWARD,
-        SKIP_BACKWARD
+        SKIP_BACKWARD,
+        TOGGLE
     }
 
     private static class ControlButton {
