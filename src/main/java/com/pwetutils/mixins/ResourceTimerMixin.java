@@ -17,7 +17,8 @@ public class ResourceTimerMixin {
         if (packet.getChatComponent() != null) {
             String text = packet.getChatComponent().getUnformattedText();
             if (text.contains("Protect your bed and destroy the enemy beds.") ||
-                    text.contains("자신의 침대를 보호하고 적들의 침대를 파괴하세요.")) {
+                    text.contains("자신의 침대를 보호하고 적들의 침대를 파괴하세요.") ||
+                    text.contains("Become a Soul Collector and trade in your")) {
                 ResourceOverlayListener.startGame(false);
                 ChatOverlayListener.startGame();
                 GameStateTracker.reset();

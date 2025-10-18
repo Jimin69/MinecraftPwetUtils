@@ -27,7 +27,9 @@ public class AdditionalExpMixin {
                     text.contains("All generators are maxed! Your bed has three") ||
                     text.contains("모든 생성기가 최대치로 강화됩니다! 침대에 삼중 보호막이") ||
                     text.contains("Found an in-progress Bed Wars game! Teleporting you to") ||
-                    text.contains("진행 중인 Bed Wars 게임을 찾았습니다!")) {
+                    text.contains("진행 중인 Bed Wars 게임을 찾았습니다!") ||
+                    text.contains("Become a Soul Collector and trade in your")) {
+
                 AdditionalExpListener.startGame();
                 return;
             }
