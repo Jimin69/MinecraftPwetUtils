@@ -126,7 +126,7 @@ public class VideoControlPanelListener {
         // Pause button - dynamic symbol with flash animations
         String pauseSymbol = "§f┃┃";
         boolean inRedFlash = (currentTime - redFlashStartTime < RED_FLASH_DURATION);
-        boolean showBlueForShift = shiftHeld && toggleModeActive;
+        boolean showBlueForShift = shiftHeld;
 
         if (inGreenFlash) {
             boolean useLight = (currentTime / TOGGLE_ANIMATION_INTERVAL) % 2 == 0;

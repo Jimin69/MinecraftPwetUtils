@@ -28,7 +28,9 @@ public class AdditionalExpMixin {
                     text.contains("모든 생성기가 최대치로 강화됩니다! 침대에 삼중 보호막이") ||
                     text.contains("Found an in-progress Bed Wars game! Teleporting you to") ||
                     text.contains("진행 중인 Bed Wars 게임을 찾았습니다!") ||
-                    text.contains("Become a Soul Collector and trade in your")) {
+                    text.contains("Become a Soul Collector and trade in your") ||
+                    text.contains("자원 생성기에서 럭키 블록을 얻어 다양한 아이템을") ||
+                    text.contains("Collect Lucky Blocks from resource generators")) {
 
                 AdditionalExpListener.startGame();
                 return;
