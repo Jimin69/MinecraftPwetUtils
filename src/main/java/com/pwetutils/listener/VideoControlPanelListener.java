@@ -69,7 +69,7 @@ public class VideoControlPanelListener {
         }
     }
 
-    private List<ControlButton> getDynamicButtons(int mouseX, int rightEdge, boolean isProgressHovered, int progressButtonX, int progressButtonWidth) {
+    private List<ControlButton> getDynamicButtons(int mouseX, int rightEdge, boolean isProgressHovered, int progressButtonX, int progressButtonWidth, boolean shiftHeld) {
         List<ControlButton> buttons = new ArrayList<>();
 
         // Add collapse button with dynamic text
@@ -126,9 +126,9 @@ public class VideoControlPanelListener {
         // Pause button - dynamic symbol with flash animations
         String pauseSymbol = "§f┃┃";
         boolean inRedFlash = (currentTime - redFlashStartTime < RED_FLASH_DURATION);
+        boolean showBlueForShift = shiftHeld && toggleModeActive;
 
         if (inGreenFlash) {
-            // Green flash for pause button (when resuming)
             boolean useLight = (currentTime / TOGGLE_ANIMATION_INTERVAL) % 2 == 0;
             String greenColor = useLight ? "§a" : "§2";
             if (hologramListener != null && hologramListener.hasVideoHologram()) {
@@ -138,7 +138,6 @@ public class VideoControlPanelListener {
                 pauseSymbol = greenColor + "┃┃";
             }
         } else if (inRedFlash) {
-            // Red flash for pause button (when damaged)
             boolean useLight = (currentTime / TOGGLE_ANIMATION_INTERVAL) % 2 == 0;
             String redColor = useLight ? "§c" : "§4";
             if (hologramListener != null && hologramListener.hasVideoHologram()) {
@@ -146,6 +145,13 @@ public class VideoControlPanelListener {
                 pauseSymbol = video.isPaused() ? redColor + "§l⫸" : redColor + "┃┃";
             } else {
                 pauseSymbol = redColor + "┃┃";
+            }
+        } else if (showBlueForShift) {
+            if (hologramListener != null && hologramListener.hasVideoHologram()) {
+                VideoHologram video = hologramListener.getCurrentVideoHologram();
+                pauseSymbol = video.isPaused() ? "§9§l⫸" : "§9┃┃";
+            } else {
+                pauseSymbol = "§9┃┃";
             }
         } else if (hologramListener != null && hologramListener.hasVideoHologram()) {
             VideoHologram video = hologramListener.getCurrentVideoHologram();
@@ -357,7 +363,7 @@ public class VideoControlPanelListener {
                     mouseY <= progressY + height + padding;
         }
 
-        List<ControlButton> buttons = getDynamicButtons(mouseX, rightEdge, isProgressHovered, progressButtonX, progressButtonWidth);
+        List<ControlButton> buttons = getDynamicButtons(mouseX, rightEdge, isProgressHovered, progressButtonX, progressButtonWidth, shiftHeld);
 
         // clean up old animations
         clickAnimations.entrySet().removeIf(entry ->
@@ -463,6 +469,33 @@ public class VideoControlPanelListener {
                                 clickAnimations.put(button.command, System.currentTimeMillis());
                                 // reset health tracking when toggling
                                 lastPlayerHealth = -1;
+                            }
+                            break;
+                        } else if (button.type == ButtonType.PAUSE) {
+                            HologramImageListener listener = getHologramListener();
+                            if (listener != null && listener.hasVideoHologram()) {
+                                VideoHologram video = listener.getCurrentVideoHologram();
+
+                                boolean shouldChangeTransparency;
+                                if (toggleModeActive) {
+                                    shouldChangeTransparency = !shiftHeld;
+                                } else {
+                                    shouldChangeTransparency = shiftHeld;
+                                }
+
+                                if (video.isPaused()) {
+                                    video.resume();
+                                    if (shouldChangeTransparency) {
+                                        video.setTransparencyMode(VideoHologram.TransparencyMode.SOLID);
+                                    }
+                                } else {
+                                    video.pause();
+                                    if (shouldChangeTransparency) {
+                                        video.setTransparencyMode(VideoHologram.TransparencyMode.IDLE);
+                                    }
+                                }
+
+                                clickAnimations.put(button.command, System.currentTimeMillis());
                             }
                             break;
                         } else if (button.type == ButtonType.SKIP_FORWARD) {

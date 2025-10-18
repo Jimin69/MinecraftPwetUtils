@@ -201,7 +201,6 @@ public class HologramCommand extends Command {
             if (hologramListener != null && hologramListener.hasVideoHologram()) {
                 VideoHologram video = hologramListener.getCurrentVideoHologram();
 
-                // Check if toggle mode is active via the panel listener
                 boolean toggleModeActive = false;
                 if (hologramListener instanceof HologramImageListener) {
                     VideoControlPanelListener panelListener = VideoControlPanelListener.getInstance();
@@ -212,27 +211,18 @@ public class HologramCommand extends Command {
 
                 if (toggleModeActive) {
                     if (video.isPaused()) {
-                        // Resume: set transparency back to SOLID and resume video
                         video.setTransparencyMode(VideoHologram.TransparencyMode.SOLID);
                         video.resume();
-                        // Trigger green flash in panel
-                        VideoControlPanelListener.getInstance().triggerGreenFlash();
                         if (!silent) mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Video resumed"));
                     } else {
-                        // Pause: set transparency to IDLE and pause video
                         video.pause();
                         video.setTransparencyMode(VideoHologram.TransparencyMode.IDLE);
-                        // Trigger red flash in panel
-                        VideoControlPanelListener.getInstance().triggerRedFlash();
                         if (!silent) mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Video paused"));
                     }
                 } else {
-                    // Normal toggle behavior
                     boolean paused = hologramListener.togglePauseVideo();
                     if (!silent) mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Video " + (paused ? "paused" : "resumed")));
                 }
-            } else if (!silent) {
-                mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] No video hologram to pause"));
             }
             return;
         }
