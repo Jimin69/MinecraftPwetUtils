@@ -1,6 +1,7 @@
 package com.pwetutils.command;
 
 import com.pwetutils.listener.HologramImageListener;
+import com.pwetutils.listener.VideoControlPanelListener;
 import com.pwetutils.listener.VideoHologram;
 import net.weavemc.loader.api.command.Command;
 import net.minecraft.client.Minecraft;
@@ -198,8 +199,38 @@ public class HologramCommand extends Command {
 
         if (args[0].equalsIgnoreCase("vp") || args[0].equalsIgnoreCase("video") && args.length >= 2 && args[1].equalsIgnoreCase("pause")) {
             if (hologramListener != null && hologramListener.hasVideoHologram()) {
-                boolean paused = hologramListener.togglePauseVideo();
-                if (!silent) mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Video " + (paused ? "paused" : "resumed")));
+                VideoHologram video = hologramListener.getCurrentVideoHologram();
+
+                // Check if toggle mode is active via the panel listener
+                boolean toggleModeActive = false;
+                if (hologramListener instanceof HologramImageListener) {
+                    VideoControlPanelListener panelListener = VideoControlPanelListener.getInstance();
+                    if (panelListener != null) {
+                        toggleModeActive = panelListener.isToggleModeActive();
+                    }
+                }
+
+                if (toggleModeActive) {
+                    if (video.isPaused()) {
+                        // Resume: set transparency back to SOLID and resume video
+                        video.setTransparencyMode(VideoHologram.TransparencyMode.SOLID);
+                        video.resume();
+                        // Trigger green flash in panel
+                        VideoControlPanelListener.getInstance().triggerGreenFlash();
+                        if (!silent) mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Video resumed"));
+                    } else {
+                        // Pause: set transparency to IDLE and pause video
+                        video.pause();
+                        video.setTransparencyMode(VideoHologram.TransparencyMode.IDLE);
+                        // Trigger red flash in panel
+                        VideoControlPanelListener.getInstance().triggerRedFlash();
+                        if (!silent) mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Video paused"));
+                    }
+                } else {
+                    // Normal toggle behavior
+                    boolean paused = hologramListener.togglePauseVideo();
+                    if (!silent) mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] Video " + (paused ? "paused" : "resumed")));
+                }
             } else if (!silent) {
                 mc.thePlayer.addChatMessage(new ChatComponentText("§7[§6PwetUtils§7] No video hologram to pause"));
             }

@@ -36,13 +36,27 @@ public class VideoControlPanelListener {
     private long redFlashStartTime = 0;
     private static final long GREEN_FLASH_DURATION = 3000;
     private static final long RED_FLASH_DURATION = 3000;
+    private static VideoControlPanelListener instance;
 
     public VideoControlPanelListener() {
+        instance = this;
         staticButtons.add(new ControlButton("§7< H", 2, 0, 0, ButtonType.COLLAPSE, null));
         staticButtons.add(new ControlButton("§7/ ]", 2, 0, 0, ButtonType.BORDER, null));
         staticButtons.add(new ControlButton("§7[", 214, 0, 0, ButtonType.BORDER, null));
         staticButtons.add(new ControlButton("§7\\ ]", 2, 0, 1, ButtonType.BORDER, null));
         staticButtons.add(new ControlButton("§7[", 214, 0, 1, ButtonType.BORDER, null));
+    }
+
+    public static VideoControlPanelListener getInstance() {
+        return instance;
+    }
+
+    public void triggerGreenFlash() {
+        greenFlashStartTime = System.currentTimeMillis();
+    }
+
+    public void triggerRedFlash() {
+        redFlashStartTime = System.currentTimeMillis();
     }
 
     private HologramImageListener getHologramListener() {
