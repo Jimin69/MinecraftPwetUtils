@@ -376,7 +376,7 @@ public class VideoControlPanelListener {
         if (panelExpanded) {
             for (ControlButton button : buttons) {
                 if (button.type == ButtonType.BORDER) {
-                    if (isHovering(button, rightEdge, baseY, mouseX, mouseY, mc)) {
+                    if (isHovering(button, rightEdge, baseY, mouseX, mouseY)) {
                         anyBorderHovered = true;
                         break;
                     }
@@ -389,7 +389,7 @@ public class VideoControlPanelListener {
             if (!panelExpanded) {
                 for (ControlButton button : buttons) {
                     if (button.type == ButtonType.COLLAPSE) {
-                        if (isHovering(button, rightEdge, baseY, mouseX, mouseY, mc)) {
+                        if (isHovering(button, rightEdge, baseY, mouseX, mouseY)) {
                             HologramImageListener listener = getHologramListener();
                             if (listener != null && listener.hasVideoHologram()) {
                                 panelExpanded = true;
@@ -403,7 +403,7 @@ public class VideoControlPanelListener {
                 }
             } else {
                 for (ControlButton button : buttons) {
-                    if (button.type != ButtonType.COLLAPSE && isHovering(button, rightEdge, baseY, mouseX, mouseY, mc)) {
+                    if (button.type != ButtonType.COLLAPSE && isHovering(button, rightEdge, baseY, mouseX, mouseY)) {
                         if (button.type == ButtonType.BORDER) {
                             panelExpanded = false;
                             break;
@@ -538,7 +538,7 @@ public class VideoControlPanelListener {
         // handle right clicks for size and transparency
         if (rightMouseDown && !wasRightMouseDown && panelExpanded) {
             for (ControlButton button : buttons) {
-                if (isHovering(button, rightEdge, baseY, mouseX, mouseY, mc)) {
+                if (isHovering(button, rightEdge, baseY, mouseX, mouseY)) {
                     if (button.type == ButtonType.SIZE) {
                         clickAnimations.put(button.command + "_right", System.currentTimeMillis());
                         mc.thePlayer.sendChatMessage("/hologram vcyclesize back silent");
@@ -555,7 +555,7 @@ public class VideoControlPanelListener {
         // render buttons
         for (ControlButton button : buttons) {
             if (shouldRenderButton(button)) {
-                renderButton(mc, button, rightEdge, baseY, mouseX, mouseY, anyBorderHovered, shiftHeld);
+                renderButton(button, rightEdge, baseY, mouseX, mouseY, anyBorderHovered, shiftHeld);
             }
         }
 
@@ -571,7 +571,8 @@ public class VideoControlPanelListener {
         }
     }
 
-    private boolean isHovering(ControlButton button, int rightEdge, int baseY, int mouseX, int mouseY, Minecraft mc) {
+    private boolean isHovering(ControlButton button, int rightEdge, int baseY, int mouseX, int mouseY) {
+        Minecraft mc = Minecraft.getMinecraft();
         int padding = 2;
         int textWidth = mc.fontRendererObj.getStringWidth(button.text);
         int boxWidth = button.width == 0 ? textWidth + padding * 2 : button.width;
@@ -588,7 +589,8 @@ public class VideoControlPanelListener {
                 mouseY <= y + height + padding;
     }
 
-    private void renderButton(Minecraft mc, ControlButton button, int rightEdge, int baseY, int mouseX, int mouseY, boolean anyBorderHovered, boolean shiftHeld) {
+    private void renderButton(ControlButton button, int rightEdge, int baseY, int mouseX, int mouseY, boolean anyBorderHovered, boolean shiftHeld) {
+        Minecraft mc = Minecraft.getMinecraft();
         int padding = 2;
         String displayText = button.text;
 
@@ -609,7 +611,7 @@ public class VideoControlPanelListener {
         int rowHeight = height + padding * 2 + 1;
         int y = baseY - (button.row * rowHeight);
 
-        boolean hovering = isHovering(button, rightEdge, baseY, mouseX, mouseY, mc);
+        boolean hovering = isHovering(button, rightEdge, baseY, mouseX, mouseY);
 
         if (button.type == ButtonType.BORDER) {
             hovering = anyBorderHovered;

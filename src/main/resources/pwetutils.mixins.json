@@ -1,6 +1,7 @@
 {
   "compatibilityLevel": "JAVA_8",
   "package": "com.pwetutils.mixins",
+  "priority": 1100,
   "mixins": [
     "KoreanInputMixin",
     "ChatLimitMixin",

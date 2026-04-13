@@ -28,9 +28,9 @@ public class KoreanInputMixin {
 
     @Inject(method = "keyTyped", at = @At("HEAD"), cancellable = true)
     public void onKeyTyped(char typedChar, int keyCode, CallbackInfo ci) {
-        boolean isSystemKorean = (typedChar >= 0xAC00 && typedChar <= 0xD7A3) || // complete korean syllables
-                (typedChar >= 0x1100 && typedChar <= 0x11FF) || // korean jamo
-                (typedChar >= 0x3130 && typedChar <= 0x318F);   // compatibility jamo
+        boolean isSystemKorean = (typedChar >= 0xAC00 && typedChar <= 0xD7A3) ||
+                (typedChar >= 0x1100 && typedChar <= 0x11FF) ||
+                (typedChar >= 0x3130 && typedChar <= 0x318F);
 
         if (isSystemKorean) {
             ChatOverlayListener.systemKoreanDetected = true;

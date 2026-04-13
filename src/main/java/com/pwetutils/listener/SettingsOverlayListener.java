@@ -126,7 +126,7 @@ public class SettingsOverlayListener {
 
             for (ModuleItem module : modules) {
                 if (module.getStatus != null) {
-                    sendModuleHelpMessage(mc, module.name);
+                    sendModuleHelpMessage(module.name);
                 }
             }
 
@@ -178,7 +178,8 @@ public class SettingsOverlayListener {
         wasMouseDown = mouseDown;
     }
 
-    private void sendModuleHelpMessage(Minecraft mc, String moduleName) {
+    private void sendModuleHelpMessage(String moduleName) {
+        Minecraft mc = Minecraft.getMinecraft();
         ChatComponentText prefix = new ChatComponentText("§7[§6PwetUtils§7] §7/pwetutils " + moduleName + " §8<");
 
         ChatComponentText enable = new ChatComponentText("§aenable");
